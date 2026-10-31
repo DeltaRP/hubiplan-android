@@ -1,0 +1,2 @@
+* Vom Server abgemeldet: nicht gesendete Buchungen und Quittungen bleiben verschlüsselt erhalten und kommen nach erneuter Anmeldung zurück
+* Nach 90 Tagen fragt die App, bevor solche alten Belege gelöscht werden

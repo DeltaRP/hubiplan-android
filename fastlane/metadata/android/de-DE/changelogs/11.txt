@@ -1,0 +1,3 @@
+* Verwaltung: Termine der Einheit mit Stand der Zu- und Absagen und Listen (zugesagt, abgesagt, offen)
+* Rückmeldung für ein Mitglied eintragen oder entfernen, z. B. nach einem Anruf
+* Einfachen Termin anlegen, Termin oder einzelnen Serientermin absagen, alles mit „Rückgängig“

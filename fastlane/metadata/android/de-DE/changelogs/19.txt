@@ -1,0 +1,2 @@
+* Konto › Mitteilungen: Hinweis, wie du den Abruf im Hintergrund vom Energiesparen ausnimmst, mit Knopf zur App-Info
+* Texte nennen den Abruf alle 15 Minuten

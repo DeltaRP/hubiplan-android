@@ -1,0 +1,1 @@
+* Mehr Sicherheit bei Push über Google (Play-Variante): Die Adresse beim Push-Gateway ist an die eigene HUBIplan-Instanz gebunden, fremde Absender können das Gerät nicht wecken

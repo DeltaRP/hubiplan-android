@@ -1,0 +1,3 @@
+* Verwaltung › Kasse: Quittung mit Unterschrift auf dem Display, die Gegenseite unterschreibt im Vollbild
+* Ohne Netz unterschrieben: Quittung bekommt die Belegnummer, sobald wieder Netz da ist
+* Hinterlegte Unterschrift des Kassierers wird vorbelegt

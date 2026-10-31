@@ -1,0 +1,17 @@
+Die Begleit-App zu HUBIplan, der freien Vereinsverwaltung. Sie verbindet sich mit der
+HUBIplan-Instanz deines Vereins (QR-Code aus dem Mitgliederbereich im Browser) und zeigt:
+
+* Termine deines Vereins und deiner Untereinheiten, Zu- und Absage mit einem Fingertipp
+* Termine im Gerätekalender mit Erinnerung, Hinweis „Rückmeldung fehlt“
+* Mitteilungen und Rundschreiben des Vorstands, sofort per Push über eine UnifiedPush-App
+  wie ntfy (ohne Google, Inhalt Ende-zu-Ende verschlüsselt) oder per Abruf
+* Kurzmitteilungen senden (für Vorstand und Zugführung)
+* Eigenes Profil, Änderungen melden, Mitgliederfoto aufnehmen
+* Farben und Wappen deines Vereins, Ansicht für Telefon und Tablet
+* Verknüpfung mit Wappen und Namen deines Vereins auf dem Startbildschirm
+* Mehrere Vereine mit eigener HUBIplan-Adresse in einer App
+
+Im App-Menü heißt die App HUBIplan; nach der Anmeldung zeigt sie deinen Verein.
+Die App spricht nur mit der HUBIplan-Instanz deines Vereins. Sie enthält keine Werbung,
+keine Analyse und keine Google-Dienste (kein Firebase, keine Play-Dienste). Voraussetzung ist, dass dein Verein HUBIplan
+nutzt und dir einen Zugang zum Mitgliederbereich gegeben hat.

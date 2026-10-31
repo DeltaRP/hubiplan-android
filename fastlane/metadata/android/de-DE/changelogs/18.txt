@@ -1,0 +1,2 @@
+* Ohne Push-App gleicht die App alle 15 Minuten ab, Mitteilungen kommen so schneller an
+* Mit UnifiedPush (z. B. ntfy) wie bisher sofort und nur alle 6 Stunden ein Abgleich

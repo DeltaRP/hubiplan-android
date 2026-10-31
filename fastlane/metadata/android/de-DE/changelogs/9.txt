@@ -1,0 +1,2 @@
+* Verwaltung: Mitglieder suchen und bearbeiten, Mitgliedsart, Untereinheit und Austritt mit Bestätigung der Folgen und Rückgängig
+* Änderungsmeldungen und Fotos freigeben, Mitgliedsausweis per QR-Code prüfen, Geburtstage und Jubiläen

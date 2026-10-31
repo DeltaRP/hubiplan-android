@@ -1,0 +1,2 @@
+* Verwaltung für Vorstand und Zugführung: Freischalten mit Passwort und 2FA, Öffnen mit Fingerabdruck, offene Aufgaben
+* Mehrere Konten: Vereine mit verschiedenen HUBIplan-Adressen in einer App (0.7)

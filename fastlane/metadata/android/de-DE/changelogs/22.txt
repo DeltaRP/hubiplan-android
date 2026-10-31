@@ -1,0 +1,2 @@
+* Profil: Mitgliedsausweis mit QR-Code, auch ohne Netz
+* QR-Code zum Vorzeigen groß und mit voller Helligkeit

@@ -1,0 +1,2 @@
+* Verwaltung: alles an Mitgliedern in der App bearbeitbar, auch Ehrungen, Zusatzfelder, Bankverbindung (IBAN ganz nur nach Fingerabdruck/PIN) und Wiedereintritt
+* Neues Mitglied aufnehmen mit Prüfung auf Doppelte

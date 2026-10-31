@@ -1,0 +1,2 @@
+* Für Android 17 vorbereitet
+* Technische Aktualisierung der Bausteine, keine sichtbaren Änderungen

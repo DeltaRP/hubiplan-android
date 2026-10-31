@@ -1,0 +1,15 @@
+.gradle/
+build/
+local.properties
+.idea/
+*.iml
+.DS_Store
+captures/
+.kotlin/
+# Signaturschlüssel nie ins Repo
+*.jks
+*.keystore
+keystore.properties
+# Firebase-Angaben des Herausgebers (Play-Fassung)
+firebase.properties
+google-services.json

@@ -1,0 +1,6 @@
+* Android-Zurück geht in der Verwaltung eine Ebene zurück; Formulare fragen vor dem Verwerfen
+* Eingaben bleiben beim Drehen erhalten; Dialoge schließen erst nach dem Speichern
+* Kasse: Entwürfe korrigieren, Verwerfen nur mit Rückfrage, Kategorien für Einnahmen und Ausgaben
+* Warnung vor dem Abmelden, wenn Buchungen oder Quittungen noch nicht gesendet sind
+* Ohne Netz: Hinweis statt leerer Seite, wartende Kassenvorgänge sichtbar
+* Einzeltermin einer Serie mit eigenem Datum, Fehler mit „Erneut laden“, Push-Status ehrlich

@@ -1,0 +1,2 @@
+* Zu-/Absagen aus einer Benachrichtigung gehören fest zu ihrem Konto; nach dem Abmelden gehen wartende Antworten nicht an ein anderes Konto
+* Schneller Kontowechsel: eine späte Antwort des vorigen Kontos überschreibt die Anzeige nicht mehr und meldet kein anderes Konto ab

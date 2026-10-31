@@ -1,0 +1,4 @@
+* Ganztägige Termine werden nicht mehr einen Tag zu lang gespeichert
+* Ja/Nein-Zusatzfelder kennen wieder „nein“ und „nicht angegeben“
+* Korrigierte Barkasse oder Kategorie einer Quittung kommt auch auf dem Server an
+* Buchungen werden vor dem Senden gesichert; alte, nicht zuordenbare Entwürfe werden nicht mehr gelöscht

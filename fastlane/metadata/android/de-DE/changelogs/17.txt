@@ -1,0 +1,2 @@
+* Mehr Sicherheit: Die App hält eigene Schlüssel im geschützten Speicher des Telefons und erneuert ihren Zugangsschlüssel jede Woche von selbst
+* Verwaltung: Jede Anfrage ist mit einem Schlüssel unterschrieben, der nur bei entsperrtem Telefon funktioniert

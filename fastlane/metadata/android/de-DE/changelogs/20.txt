@@ -1,0 +1,2 @@
+* Verwaltung › Beiträge: offene Rechnungen suchen, Barzahlung in die Barkasse verbuchen
+* Quittung zu jeder Zahlung als PDF teilen oder ansehen

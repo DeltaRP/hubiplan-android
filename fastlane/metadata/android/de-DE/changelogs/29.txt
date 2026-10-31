@@ -1,0 +1,3 @@
+* Verwaltung sperrt sich sofort, wenn das Telefon gesperrt wird, und wenn die App länger als eine Minute im Hintergrund ist
+* Nur eigene Bedienung verlängert die 5 Minuten, automatisches Nachladen nicht mehr
+* Die App braucht jetzt mindestens Android 9

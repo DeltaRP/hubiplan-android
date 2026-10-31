@@ -1,0 +1,2 @@
+* Für Android 16 vorbereitet (Voraussetzung für Google Play)
+* Neu unter Konto: „Konto und Daten löschen“ erklärt, was Abmelden löscht und wo du die Löschung beim Verein beantragst

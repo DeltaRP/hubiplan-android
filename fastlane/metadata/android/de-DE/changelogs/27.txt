@@ -1,0 +1,1 @@
+* Abmelden mit noch nicht gesendeten Buchungen oder Quittungen: die App fragt „erst senden oder verwerfen?“ und sendet auf Wunsch direkt

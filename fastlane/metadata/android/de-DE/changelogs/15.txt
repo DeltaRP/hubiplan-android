@@ -1,0 +1,3 @@
+* Mehr Sicherheit: Vor dem Verbinden per QR-Code zeigt die App die Adresse und fragt nach
+* Auf dem gesperrten Bildschirm steht nur „Neue Mitteilung“; der Inhalt lässt sich unter Konto › Hinweise wieder einblenden
+* Verwaltung: Der Vorstandsschlüssel gilt nur noch zusammen mit dem Schlüssel dieses Geräts

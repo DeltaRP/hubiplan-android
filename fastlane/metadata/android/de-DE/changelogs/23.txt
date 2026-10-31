@@ -1,0 +1,4 @@
+* Profil- und Belegfotos aus Kamera und Galerie funktionieren wieder
+* Verwaltung sperrt sich nach 5 Minuten Pause auch bei geöffneter Ansicht
+* Entwürfe und Quittungen je Konto getrennt verschlüsselt, beim Abmelden gelöscht
+* Hinterlegte eigene Unterschrift lädt wieder; Anfragen besser gegen Wiederholung geschützt

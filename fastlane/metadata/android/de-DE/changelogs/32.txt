@@ -1,0 +1,2 @@
+* Neues App-Symbol: zwei Mitglieder Arm in Arm bilden das H von HUBIplan, auch einfarbig für Android-Designfarben
+* Standardfarben Grün und Gold, solange keine Vereinsfarben geladen sind

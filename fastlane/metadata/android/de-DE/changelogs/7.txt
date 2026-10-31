@@ -1,0 +1,2 @@
+* Mehrere Konten: Vereine mit verschiedenen HUBIplan-Adressen in einer App, Wechsel unter „Konto“
+* Play-Fassung: Push über Google, wenn keine UnifiedPush-App installiert ist (0.6)

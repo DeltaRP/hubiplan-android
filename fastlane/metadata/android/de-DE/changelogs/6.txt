@@ -1,0 +1,3 @@
+* Play-Fassung: Push über Google, wenn keine UnifiedPush-App installiert ist
+* Eigenes Profil, Änderungen melden, Mitgliederfoto (0.5)
+* Kurzmitteilungen senden (0.4)

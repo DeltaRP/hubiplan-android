@@ -1,0 +1,3 @@
+* Barrierefreiheit: Schalter und Häkchen mit Beschriftung für TalkBack, Überschriften, angesagte Meldungen
+* Vereinsfarben mit genug Kontrast, Kalender und Uhrzeitauswahl an Datumsfeldern
+* Unterschrift auch im Hochformat
