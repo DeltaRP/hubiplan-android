@@ -1,11 +1,31 @@
 # HUBIplan-App für Android
 
-Begleit-App zu [HUBIplan](https://github.com/DeltaRP/hubiplan), der webbasierten
-Vereinsverwaltung. Sie ergänzt den Mitgliederbereich im Browser und bringt Termine,
-Mitteilungen und die wichtigsten Verwaltungsaufgaben aufs Telefon. Die App spricht nur mit
-der HUBIplan-Instanz des Mitglieds, nie mit einem fremden Dienst.
+**Die Android-App zu [HUBIplan](https://github.com/DeltaRP/hubiplan), der freien Vereinsverwaltung.**
 
-Paketname `de.hubiplan.app`, Version 0.17.0, ab Android 9, für Telefon und Tablet.
+Die App bringt Termine, Mitteilungen, den Mitgliedsausweis und die wichtigsten
+Verwaltungsaufgaben aufs Telefon. Sie ergänzt den Mitgliederbereich im Browser und spricht
+nur mit der HUBIplan-Instanz des eigenen Vereins, nie mit einem fremden Dienst. Die Variante
+`foss` kommt ganz ohne Google-Dienste aus; Push geht dort über UnifiedPush.
+
+> **English:** The Android companion app for [HUBIplan](https://github.com/DeltaRP/hubiplan),
+> free membership management for clubs. It talks only to the member's own HUBIplan instance;
+> the `foss` flavour contains no Google services. The user interface and documentation are
+> in German; issues and security reports in English are welcome.
+
+Paketname `de.hubiplan.app`, ab Android 9, für Telefon und Tablet.
+
+## Inhalt
+
+- [Für Mitglieder](#für-mitglieder)
+- [Für Vorstand, Untereinheiten und Kasse](#für-vorstand-untereinheiten-und-kasse)
+- [Verbinden](#verbinden)
+- [Varianten](#varianten)
+- [Technik](#technik)
+- [Bauen und testen](#bauen-und-testen)
+- [Veröffentlichen](#veröffentlichen)
+- [Mitwirken](#mitwirken)
+- [Sicherheit](#sicherheit)
+- [Lizenz](#lizenz)
 
 ## Für Mitglieder
 
@@ -48,29 +68,29 @@ Bildschirmfotos sind dort gesperrt.
 Im Browser unter **Mein Konto › App & andere Instanzen › App auf dem Telefon** auf
 „App verbinden“ tippen und den QR-Code in der App scannen. Alternativ mit E-Mail, Passwort
 und ggf. Zwei-Faktor-Code anmelden. Die App erhält einen eigenen Geräteschlüssel, der nur
-für den Mitgliederbereich gilt und sich jederzeit unter „Mein Konto“ abmelden lässt. Die
-Schnittstelle beschreibt `docs/app.md` in hubiplan.
+für den Mitgliederbereich gilt und sich jederzeit unter „Mein Konto“ abmelden lässt.
 
 ## Varianten
 
 | Variante | Vertrieb | Push |
 | --- | --- | --- |
-| `foss` | F-Droid, Google Play, APK zum Herunterladen | UnifiedPush oder Abruf; **ohne Google-Dienste** (kein Firebase, keine Play-Dienste) |
+| `foss` | vorgesehen für F-Droid, Google Play und als APK zum Herunterladen | UnifiedPush oder Abruf; **ohne Google-Dienste** (kein Firebase, keine Play-Dienste) |
 | `play` | derzeit nicht veröffentlicht | zusätzlich Firebase Cloud Messaging über das Push-Gateway von HUBIplan |
 
 `scripts/test.sh` prüft bei jedem Lauf, dass `foss` weder Firebase noch Play-Dienste enthält.
-Freie Bibliotheken, die von Google stammen (z. B. ZXing, AndroidX), sind erlaubt; sie stehen
-unter der Apache-Lizenz.
+Freie Bibliotheken, die von Google stammen (z. B. AndroidX, ZXing), sind erlaubt; sie stehen
+unter der Apache-Lizenz. Für die Google-Bibliotheken in `play` gilt eine
+[Zusatzerlaubnis](#zusätzliche-erlaubnis-für-google-bibliotheken-agpl--7).
 
-Lizenzen: Die App zeigt unter „Lizenzen“ (Startseite und Konto) den AGPL-Text und alle
-enthaltenen Bibliotheken mit Lizenztext; die Liste entsteht beim Bauen aus dem
+Die App zeigt unter „Lizenzen“ (Startseite und Konto) den AGPL-Text, den Link zum Quellcode
+und alle enthaltenen Bibliotheken mit Lizenztext; die Liste entsteht beim Bauen aus dem
 Abhängigkeitsgraphen der Variante. Einzelheiten: [docs/lizenzen.md](docs/lizenzen.md).
 
 ## Technik
 
 Kotlin, Jetpack Compose mit Material 3, OkHttp, kotlinx.serialization, WorkManager,
 DataStore, ZXing (QR-Codes), AndroidX Biometric. Gebaut mit Gradle und dem Android Gradle
-Plugin 9, Ziel- und Kompilierversion SDK 37, Mindestversion SDK 26.
+Plugin 9; Ziel- und Kompilierversion SDK 37, Mindestversion SDK 28 (Android 9).
 
 ```text
 app/src/main/java/de/hubiplan/app/
@@ -83,41 +103,52 @@ app/src/main/java/de/hubiplan/app/
 app/src/foss/, app/src/play/   Unterschiede der Varianten
 app/src/test/                  Unit-Tests
 fastlane/metadata/             Texte und Bilder für F-Droid und Play
-docs/veroeffentlichen.md       Veröffentlichen
+docs/                          Lizenzen, Veröffentlichen
 ```
+
+Die Schnittstelle zu HUBIplan (`/api/app/v1/`) beschreibt
+[docs/app.md](https://github.com/DeltaRP/hubiplan/blob/main/docs/app.md) in hubiplan.
 
 ## Bauen und testen
 
-Voraussetzungen: JDK 17 oder neuer, Android-SDK (Plattform 37), `ANDROID_HOME` gesetzt.
+Voraussetzungen: JDK 17 oder neuer, Android-SDK (Plattform 37), `ANDROID_HOME` gesetzt
+(oder Android Studio an der Standardstelle).
 
 ```bash
-scripts/test.sh            # Unit-Tests, Lint, Debug-APKs, Prüfung „foss ohne Google“
-./gradlew assembleFossRelease bundlePlayRelease
+scripts/test.sh                                  # Unit-Tests, Lint, Debug-APKs, Prüfung „foss ohne Google“
+./gradlew assembleFossDebug                      # nur die Debug-APK der Variante foss
+./gradlew assembleFossRelease bundlePlayRelease  # Veröffentlichungsfassungen
 ```
 
-Feste Regeln:
+`scripts/test.sh` läuft unter Linux, WSL und Git Bash unter Windows. Damit sich mehrere
+Testläufe auf einem Rechner nicht ausbremsen, holt es sich einen Testplatz mit `testplatz`
+(aus [hubiplan/scripts/testplatz.sh](https://github.com/DeltaRP/hubiplan/blob/main/scripts/testplatz.sh),
+Installation steht im Kopf der Datei).
 
-- Gebaut und getestet wird lokal auf Ralfs PC, bevorzugt unter Windows in Git Bash
-  (`scripts/test.sh` findet dort das SDK und das JDK von Android Studio selbst). Nie auf
-  dem Testserver.
-- **Höchstens zwei Testläufe gleichzeitig, jeder höchstens 8 Kerne**, für alle Projekte
-  auf Ralfs PC zusammen. `scripts/test.sh` holt sich dafür einen Platz mit `testplatz`
-  (aus `hubiplan/scripts/testplatz.sh`).
-- Nur erfundene Daten in Tests und Beispielen.
-- GitHub Actions läuft nur von Hand (workflow_dispatch), nie automatisch.
+Nur beim Herausgeber, nie im Repository:
 
-Nur auf dem Rechner des Herausgebers, nie im Repository:
-
-- `keystore.properties` (`storeFile`, `storePassword`, `keyAlias`, `keyPassword`):
-  Signatur der Veröffentlichung. Ohne die Datei bleibt `release` unsigniert (F-Droid
-  signiert selbst).
+- `keystore.properties` (`storeFile`, `storePassword`, `keyAlias`, `keyPassword`): Signatur
+  der Veröffentlichung. Ohne die Datei bleibt `release` unsigniert (F-Droid signiert selbst).
 - `firebase.properties` (`app_id`, `project_id`, `api_key`, `sender_id`): nur für `play`.
   Ohne die Datei hat `play` keinen Google-Push.
 
 ## Veröffentlichen
 
-Herausgeber ist Philipsen EDV. F-Droid, Google Play, APK zum Herunterladen und der
-Textbaustein für die Datenschutzhinweise des Vereins: [docs/veroeffentlichen.md](docs/veroeffentlichen.md).
+Herausgeber ist Philipsen EDV. F-Droid, Google Play, APK zum Herunterladen und ein
+Textbaustein für die Datenschutzhinweise des Vereins:
+[docs/veroeffentlichen.md](docs/veroeffentlichen.md).
+
+## Mitwirken
+
+Fehlermeldungen, Ideen und Pull Requests sind willkommen: [CONTRIBUTING.md](CONTRIBUTING.md).
+Bitte nur erfundene Daten in Code, Tests und Bildschirmfotos, und keine Google-Bibliothek in
+der Variante `foss`.
+
+## Sicherheit
+
+Sicherheitslücken bitte **nicht** als öffentliches Issue melden, sondern vertraulich über
+[GitHub](https://github.com/DeltaRP/hubiplan-android/security/advisories/new). Einzelheiten:
+[SECURITY.md](SECURITY.md).
 
 ## Lizenz
 
