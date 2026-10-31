@@ -132,3 +132,25 @@ Die App wird in der Hoffnung verbreitet, dass sie nützlich ist, aber **ohne jed
 Gewährleistung**, sogar ohne die implizite Gewährleistung der Marktreife oder der Eignung
 für einen bestimmten Zweck. Einzelheiten stehen in der Lizenz. Den vollständigen
 Lizenztext (englisch, maßgeblich) enthält die Datei [LICENSE](LICENSE).
+
+### Zusätzliche Erlaubnis für Google-Bibliotheken (AGPL § 7)
+
+Die Variante `play` bindet Bibliotheken von Google ein (Google Play-Dienste, Firebase), von
+denen einige nur unter Googles Android-SDK-Lizenz stehen. Damit auch diese Variante
+weitergegeben werden darf, erteilt der Rechteinhaber folgende Zusatzerlaubnis. Maßgeblich ist
+der englische Wortlaut:
+
+> **Additional permission under GNU AGPL version 3 section 7**
+>
+> If you modify this Program, or any covered work, by linking or combining it with the
+> Google Play services libraries or the Firebase libraries (or modified versions of those
+> libraries), containing parts covered by the terms of the Android Software Development Kit
+> License Agreement, the licensors of this Program grant you additional permission to convey
+> the resulting work. Corresponding Source for a non-source form of such a combination shall
+> not include the source code for the parts of those libraries used as well as that of the
+> covered work.
+
+Die Erlaubnis gilt nur für diese Google-Bibliotheken. Für den eigenen Code der App bleibt
+alles wie in der AGPL: Wer die App weitergibt, muss ihren Quellcode anbieten. Wer die App
+verändert, darf diese Zusatzerlaubnis für seine Fassung beibehalten oder streichen
+(AGPL § 7 Absatz 3).
