@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import de.hubiplan.app.BuildConfig
 import kotlinx.coroutines.launch
+import de.hubiplan.app.tr
 
 @Composable
 fun AccountPane(main: Screen.Main, vm: AppViewModel) {
@@ -52,13 +53,13 @@ fun AccountPane(main: Screen.Main, vm: AppViewModel) {
     ) {
         Text(main.account.display.ifBlank { main.account.email }, style = MaterialTheme.typography.headlineSmall, modifier = Modifier.asHeading())
         Text(main.account.email)
-        Text("Verbunden mit ${main.account.server.removePrefix("https://")}", style = MaterialTheme.typography.bodySmall)
-        TextButton(onClick = { open("${main.account.server}/mein-konto") }) { Text("Mein Konto im Browser öffnen") }
+        Text(tr("Verbunden mit {x1}", "x1" to main.account.server.removePrefix("https://")), style = MaterialTheme.typography.bodySmall)
+        TextButton(onClick = { open("${main.account.server}/mein-konto") }) { Text(tr("Mein Konto im Browser öffnen")) }
         main.access?.let { a ->
             val key = a.imprintKey?.let { "/$it" } ?: ""
-            TextButton(onClick = { open("${main.account.server}/datenschutz$key") }) { Text("Datenschutzhinweise") }
-            TextButton(onClick = { open("${main.account.server}/impressum$key") }) { Text("Impressum") }
-            Text("Angemeldet als Mitglied von ${a.title}", style = MaterialTheme.typography.bodySmall)
+            TextButton(onClick = { open("${main.account.server}/datenschutz$key") }) { Text(tr("Datenschutzhinweise")) }
+            TextButton(onClick = { open("${main.account.server}/impressum$key") }) { Text(tr("Impressum")) }
+            Text(tr("Angemeldet als Mitglied von {title}", "title" to a.title), style = MaterialTheme.typography.bodySmall)
         }
         ShortcutSection(main, vm)
         androidx.compose.material3.HorizontalDivider()
@@ -66,15 +67,15 @@ fun AccountPane(main: Screen.Main, vm: AppViewModel) {
         androidx.compose.material3.HorizontalDivider()
         SettingsSection(vm)
         androidx.compose.material3.HorizontalDivider()
-        OutlinedButton(onClick = { askLogout() }) { Text("Dieses Konto vom Gerät abmelden") }
+        OutlinedButton(onClick = { askLogout() }) { Text(tr("Dieses Konto vom Gerät abmelden")) }
         // Google Play verlangt einen Weg zum Löschen von Konto und Daten in der App
-        TextButton(onClick = { deleteInfo = true }) { Text("Konto und Daten löschen") }
+        TextButton(onClick = { deleteInfo = true }) { Text(tr("Konto und Daten löschen")) }
         Text(
-            "HUBIplan-App ${BuildConfig.VERSION_NAME} · freie Software unter der GNU AGPL 3.0 oder neuer",
+            tr("HUBIplan-App {VERSION_NAME} · freie Software unter der GNU AGPL 3.0 oder neuer", "VERSION_NAME" to BuildConfig.VERSION_NAME),
             style = MaterialTheme.typography.bodySmall,
         )
-        TextButton(onClick = { licenses = true }) { Text("Lizenzen") }
-        TextButton(onClick = { open(SOURCE_URL) }) { Text("Quellcode") }
+        TextButton(onClick = { licenses = true }) { Text(tr("Lizenzen")) }
+        TextButton(onClick = { open(SOURCE_URL) }) { Text(tr("Quellcode")) }
     }
 
     if (licenses) LicensesDialog(onClose = { licenses = false })
@@ -83,30 +84,23 @@ fun AccountPane(main: Screen.Main, vm: AppViewModel) {
         val key = main.access?.imprintKey?.let { "/$it" } ?: ""
         AlertDialog(
             onDismissRequest = { deleteInfo = false },
-            title = { Text("Konto und Daten löschen") },
+            title = { Text(tr("Konto und Daten löschen")) },
             text = {
                 Text(
-                    "Deine Mitgliedsdaten verwaltet dein Verein in seiner HUBIplan-Instanz " +
-                        "(${main.account.server.removePrefix("https://")}), nicht die App.\n\n" +
-                        "• Abmelden löscht den Geräteschlüssel dieses Telefons beim Verein und alle Daten " +
-                        "dieses Kontos in der App, auch die eingetragenen Kalendertermine und noch nicht " +
-                        "gesendete Buchungen und Quittungen der Verwaltung.\n" +
-                        "• Dein Foto kannst du unter Profil selbst löschen.\n" +
-                        "• Die Löschung deines Zugangs und deiner Mitgliedsdaten beantragst du beim Verein. " +
-                        "Wen du ansprichst, steht in seinen Datenschutzhinweisen.",
+                    tr("Deine Mitgliedsdaten verwaltet dein Verein in seiner HUBIplan-Instanz ({x1}), nicht die App.\n\n• Abmelden löscht den Geräteschlüssel dieses Telefons beim Verein und alle Daten dieses Kontos in der App, auch die eingetragenen Kalendertermine und noch nicht gesendete Buchungen und Quittungen der Verwaltung.\n• Dein Foto kannst du unter Profil selbst löschen.\n• Die Löschung deines Zugangs und deiner Mitgliedsdaten beantragst du beim Verein. Wen du ansprichst, steht in seinen Datenschutzhinweisen.", "x1" to main.account.server.removePrefix("https://")),
                 )
             },
             confirmButton = {
                 TextButton(onClick = {
                     deleteInfo = false
                     open("${main.account.server}/datenschutz$key")
-                }) { Text("Datenschutzhinweise öffnen") }
+                }) { Text(tr("Datenschutzhinweise öffnen")) }
             },
             dismissButton = {
                 TextButton(onClick = {
                     deleteInfo = false
                     askLogout()
-                }) { Text("Jetzt abmelden") }
+                }) { Text(tr("Jetzt abmelden")) }
             },
         )
     }
@@ -118,16 +112,14 @@ fun AccountPane(main: Screen.Main, vm: AppViewModel) {
             onDismissRequest = { if (!sendingPending) pendingWarning = 0 },
             title = {
                 Text(
-                    if (n == 1) "1 Buchung oder Quittung noch nicht gesendet"
-                    else "$n Buchungen oder Quittungen noch nicht gesendet",
+                    if (n == 1) tr("1 Buchung oder Quittung noch nicht gesendet")
+                    else tr("{n} Buchungen oder Quittungen noch nicht gesendet", "n" to n),
                 )
             },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(
-                        "Auf diesem Telefon liegen noch nicht gesendete Vorgänge der Kasse. Erst senden " +
-                            "oder verwerfen? Beim Abmelden ohne Senden werden sie gelöscht und lassen sich " +
-                            "nicht wiederherstellen.",
+                        tr("Auf diesem Telefon liegen noch nicht gesendete Vorgänge der Kasse. Erst senden oder verwerfen? Beim Abmelden ohne Senden werden sie gelöscht und lassen sich nicht wiederherstellen."),
                     )
                     pendingError?.let { Text(it, color = MaterialTheme.colorScheme.error) }
                 }
@@ -146,18 +138,18 @@ fun AccountPane(main: Screen.Main, vm: AppViewModel) {
                             }
                         }
                     },
-                ) { Text(if (sendingPending) "Wird gesendet …" else "Erst senden, dann abmelden") }
+                ) { Text(if (sendingPending) tr("Wird gesendet …") else tr("Erst senden, dann abmelden")) }
             },
             dismissButton = {
                 Row {
                     TextButton(enabled = !sendingPending, onClick = {
                         pendingWarning = 0
                         pendingError = null
-                    }) { Text("Abbrechen") }
+                    }) { Text(tr("Abbrechen")) }
                     TextButton(enabled = !sendingPending, onClick = {
                         pendingWarning = 0
                         vm.logout()
-                    }) { Text("Verwerfen und abmelden", color = MaterialTheme.colorScheme.error) }
+                    }) { Text(tr("Verwerfen und abmelden"), color = MaterialTheme.colorScheme.error) }
                 }
             },
         )
@@ -172,15 +164,14 @@ private fun ShortcutSection(main: Screen.Main, vm: AppViewModel) {
     if (!remember { de.hubiplan.app.shortcut.ClubShortcut.supported(context) }) return
     var unsupported by remember { mutableStateOf(false) }
     androidx.compose.material3.HorizontalDivider()
-    Text("Startbildschirm", style = MaterialTheme.typography.titleMedium, modifier = Modifier.asHeading())
+    Text(tr("Startbildschirm"), style = MaterialTheme.typography.titleMedium, modifier = Modifier.asHeading())
     Text(
-        "Lege „${access.title}“ mit Wappen als Verknüpfung auf den Startbildschirm. Ein Tipp darauf öffnet die App " +
-            "direkt bei diesem Konto. Name und Wappen passen sich an, wenn der Verein sie ändert.",
+        tr("Lege „{title}“ mit Wappen als Verknüpfung auf den Startbildschirm. Ein Tipp darauf öffnet die App direkt bei diesem Konto. Name und Wappen passen sich an, wenn der Verein sie ändert.", "title" to access.title),
         style = MaterialTheme.typography.bodySmall,
     )
-    OutlinedButton(onClick = { unsupported = !vm.pinShortcut() }) { Text("Auf den Startbildschirm legen") }
+    OutlinedButton(onClick = { unsupported = !vm.pinShortcut() }) { Text(tr("Auf den Startbildschirm legen")) }
     if (unsupported) {
-        Text("Dein Startbildschirm unterstützt keine Verknüpfungen.", color = MaterialTheme.colorScheme.error)
+        Text(tr("Dein Startbildschirm unterstützt keine Verknüpfungen."), color = MaterialTheme.colorScheme.error)
     }
 }
 
@@ -189,18 +180,18 @@ private fun ShortcutSection(main: Screen.Main, vm: AppViewModel) {
 private fun AccountsSection(main: Screen.Main, vm: AppViewModel) {
     val list by vm.accountList.collectAsStateWithLifecycle()
     val active by vm.activeSlot.collectAsStateWithLifecycle()
-    Text("Konten", style = MaterialTheme.typography.titleMedium, modifier = Modifier.asHeading())
+    Text(tr("Konten"), style = MaterialTheme.typography.titleMedium, modifier = Modifier.asHeading())
     val others = list.filter { it.first != active }
     if (others.isEmpty()) {
         Text(
-            "Bist du auch in einem Verein mit eigener HUBIplan-Adresse, kannst du ihn hier als weiteres Konto verbinden.",
+            tr("Bist du auch in einem Verein mit eigener HUBIplan-Adresse, kannst du ihn hier als weiteres Konto verbinden."),
             style = MaterialTheme.typography.bodySmall,
         )
     }
     others.forEach { (slot, account) ->
         TextButton(onClick = { vm.switchAccount(slot) }) {
-            Text("Wechseln zu ${account.display.ifBlank { account.email }} · ${account.server.removePrefix("https://")}")
+            Text(tr("Wechseln zu {x1} · {x2}", "x1" to account.display.ifBlank { account.email }, "x2" to account.server.removePrefix("https://")))
         }
     }
-    OutlinedButton(onClick = vm::addAccount) { Text("Weiteres Konto verbinden") }
+    OutlinedButton(onClick = vm::addAccount) { Text(tr("Weiteres Konto verbinden")) }
 }

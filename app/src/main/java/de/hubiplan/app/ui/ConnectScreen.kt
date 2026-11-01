@@ -34,6 +34,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import com.journeyapps.barcodescanner.ScanContract
 import com.journeyapps.barcodescanner.ScanOptions
+import de.hubiplan.app.tr
 
 @Composable
 fun ConnectScreen(state: ConnectState, vm: AppViewModel) {
@@ -46,18 +47,17 @@ fun ConnectScreen(state: ConnectState, vm: AppViewModel) {
     state.pendingPairing?.let { link ->
         AlertDialog(
             onDismissRequest = vm::cancelPairing,
-            title = { Text("Mit dieser Adresse verbinden?") },
+            title = { Text(tr("Mit dieser Adresse verbinden?")) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(link.server.removePrefix("https://"), style = MaterialTheme.typography.titleMedium)
                     Text(
-                        "Verbinde die App nur, wenn das die Adresse deines Vereins ist und du den QR-Code " +
-                            "selbst gerade im Browser erzeugt hast.",
+                        tr("Verbinde die App nur, wenn das die Adresse deines Vereins ist und du den QR-Code selbst gerade im Browser erzeugt hast."),
                     )
                 }
             },
             confirmButton = { Button(onClick = vm::confirmPairing) { Text("Ja, verbinden") } },
-            dismissButton = { TextButton(onClick = vm::cancelPairing) { Text("Abbrechen") } },
+            dismissButton = { TextButton(onClick = vm::cancelPairing) { Text(tr("Abbrechen")) } },
         )
     }
     Surface(Modifier.fillMaxSize()) {
@@ -73,8 +73,7 @@ fun ConnectScreen(state: ConnectState, vm: AppViewModel) {
                 Text("HUBIplan", style = MaterialTheme.typography.headlineLarge, color = MaterialTheme.colorScheme.primary)
                 if (state.adding) {
                     Text(
-                        "Weiteres Konto verbinden, zum Beispiel für einen zweiten Verein mit eigener HUBIplan-Adresse. " +
-                            "Für weitere Einheiten derselben Adresse ist kein zweites Konto nötig.",
+                        tr("Weiteres Konto verbinden, zum Beispiel für einen zweiten Verein mit eigener HUBIplan-Adresse. Für weitere Einheiten derselben Adresse ist kein zweites Konto nötig."),
                         style = MaterialTheme.typography.bodySmall,
                     )
                 }
@@ -87,8 +86,7 @@ fun ConnectScreen(state: ConnectState, vm: AppViewModel) {
                     return@Column
                 }
                 Text(
-                    "Am einfachsten verbindest du die App mit dem QR-Code aus HUBIplan: im Browser unter " +
-                        "„Mein Konto › App auf dem Telefon“ auf „App verbinden“ tippen.",
+                    tr("Am einfachsten verbindest du die App mit dem QR-Code aus HUBIplan: im Browser unter „Mein Konto › App auf dem Telefon“ auf „App verbinden“ tippen."),
                 )
                 Button(
                     onClick = {
@@ -96,20 +94,20 @@ fun ConnectScreen(state: ConnectState, vm: AppViewModel) {
                         scanner.launch(
                             ScanOptions()
                                 .setDesiredBarcodeFormats(ScanOptions.QR_CODE)
-                                .setPrompt("QR-Code aus „Mein Konto“ scannen")
+                                .setPrompt(tr("QR-Code aus „Mein Konto“ scannen"))
                                 .setBeepEnabled(false)
                                 .setOrientationLocked(false),
                         )
                     },
                     enabled = !state.busy,
                     modifier = Modifier.fillMaxWidth(),
-                ) { Text("Mit QR-Code verbinden") }
+                ) { Text(tr("Mit QR-Code verbinden")) }
                 HorizontalDivider()
                 PasswordLogin(state, vm)
                 if (state.adding) {
-                    TextButton(onClick = vm::cancelAdd, enabled = !state.busy) { Text("Abbrechen, zurück zum bisherigen Konto") }
+                    TextButton(onClick = vm::cancelAdd, enabled = !state.busy) { Text(tr("Abbrechen, zurück zum bisherigen Konto")) }
                 }
-                TextButton(onClick = { licenses = true }) { Text("Lizenzen") }
+                TextButton(onClick = { licenses = true }) { Text(tr("Lizenzen")) }
             }
         }
     }
@@ -120,11 +118,11 @@ private fun PasswordLogin(state: ConnectState, vm: AppViewModel) {
     var server by rememberSaveable { mutableStateOf(state.server.removePrefix("https://")) }
     var email by rememberSaveable { mutableStateOf("") }
     var password by rememberSaveable { mutableStateOf("") }
-    Text("Oder mit E-Mail und Passwort anmelden", style = MaterialTheme.typography.titleMedium, modifier = Modifier.asHeading())
+    Text(tr("Oder mit E-Mail und Passwort anmelden"), style = MaterialTheme.typography.titleMedium, modifier = Modifier.asHeading())
     OutlinedTextField(
         value = server,
         onValueChange = { server = it },
-        label = { Text("Adresse von HUBIplan") },
+        label = { Text(tr("Adresse von HUBIplan")) },
         placeholder = { Text("verein.example.de") },
         singleLine = true,
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri),
@@ -141,7 +139,7 @@ private fun PasswordLogin(state: ConnectState, vm: AppViewModel) {
     OutlinedTextField(
         value = password,
         onValueChange = { password = it },
-        label = { Text("Passwort") },
+        label = { Text(tr("Passwort")) },
         singleLine = true,
         visualTransformation = PasswordVisualTransformation(),
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
@@ -151,18 +149,18 @@ private fun PasswordLogin(state: ConnectState, vm: AppViewModel) {
         onClick = { vm.login(server, email, password) },
         enabled = !state.busy && server.isNotBlank() && email.isNotBlank() && password.isNotEmpty(),
         modifier = Modifier.fillMaxWidth(),
-    ) { Text("Anmelden") }
+    ) { Text(tr("Anmelden")) }
 }
 
 @Composable
 private fun SecondFactor(state: ConnectState, vm: AppViewModel) {
     var code by rememberSaveable { mutableStateOf("") }
-    Text("Zwei-Faktor-Anmeldung", style = MaterialTheme.typography.titleMedium, modifier = Modifier.asHeading())
-    Text("Bitte den Code aus deiner Authenticator-App oder einen Wiederherstellungscode eingeben.")
+    Text(tr("Zwei-Faktor-Anmeldung"), style = MaterialTheme.typography.titleMedium, modifier = Modifier.asHeading())
+    Text(tr("Bitte den Code aus deiner Authenticator-App oder einen Wiederherstellungscode eingeben."))
     OutlinedTextField(
         value = code,
         onValueChange = { code = it },
-        label = { Text("Code") },
+        label = { Text(tr("Code")) },
         singleLine = true,
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
         modifier = Modifier.fillMaxWidth(),
@@ -171,6 +169,6 @@ private fun SecondFactor(state: ConnectState, vm: AppViewModel) {
         onClick = { vm.secondFactor(code) },
         enabled = !state.busy && code.isNotBlank(),
         modifier = Modifier.fillMaxWidth(),
-    ) { Text("Bestätigen") }
-    TextButton(onClick = vm::cancelSecondFactor) { Text("Abbrechen") }
+    ) { Text(tr("Bestätigen")) }
+    TextButton(onClick = vm::cancelSecondFactor) { Text(tr("Abbrechen")) }
 }

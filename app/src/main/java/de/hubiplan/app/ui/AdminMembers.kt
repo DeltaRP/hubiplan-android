@@ -72,6 +72,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.contentOrNull
+import de.hubiplan.app.tr
 
 const val MEMBERS_EDIT = "members.edit"
 const val PHOTOS_MANAGE = "photos.manage"
@@ -83,7 +84,7 @@ typealias OnChanged = (text: String, changeSet: String?) -> Unit
 class AdminErrors(val onLocked: () -> Unit) {
     fun message(e: ApiException): String {
         if (e.status == 401) onLocked()
-        return e.message ?: "Fehler"
+        return e.message ?: tr("Fehler")
     }
 }
 
@@ -144,7 +145,7 @@ fun MemberList(
                 onSearch(it)
                 page = 1
             },
-            label = { Text("Suchen (Name, Nummer, E-Mail)") },
+            label = { Text(tr("Suchen (Name, Nummer, E-Mail)")) },
             singleLine = true,
             modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
         )
@@ -153,7 +154,7 @@ fun MemberList(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
-            Text(if (loading && page == 1) "Lädt …" else "$count gefunden", style = MaterialTheme.typography.bodySmall)
+            Text(if (loading && page == 1) tr("Lädt …") else "$count gefunden", style = MaterialTheme.typography.bodySmall)
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.toggleable(value = former, role = Role.Switch, onValueChange = {
@@ -161,12 +162,12 @@ fun MemberList(
                     page = 1
                 }),
             ) {
-                Text("Ehemalige", style = MaterialTheme.typography.bodySmall)
+                Text(tr("Ehemalige"), style = MaterialTheme.typography.bodySmall)
                 Switch(checked = former, onCheckedChange = null, modifier = Modifier.padding(start = 8.dp))
             }
         }
         onAdmit?.let { admit ->
-            TextButton(onClick = admit, modifier = Modifier.padding(horizontal = 8.dp)) { Text("+ Neues Mitglied") }
+            TextButton(onClick = admit, modifier = Modifier.padding(horizontal = 8.dp)) { Text(tr("+ Neues Mitglied")) }
         }
         if (loading) LinearProgressIndicator(Modifier.fillMaxWidth())
         error?.let { Text(it, color = MaterialTheme.colorScheme.error, modifier = Modifier.announce(urgent = true).padding(16.dp)) }
@@ -183,7 +184,7 @@ fun MemberList(
             }
             if (hasMore) {
                 item {
-                    TextButton(onClick = { page += 1 }, enabled = !loading, modifier = Modifier.padding(16.dp)) { Text("Weitere laden") }
+                    TextButton(onClick = { page += 1 }, enabled = !loading, modifier = Modifier.padding(16.dp)) { Text(tr("Weitere laden")) }
                 }
             }
         }
@@ -256,7 +257,7 @@ fun MemberScreen(
     }
 
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        TextButton(onClick = onBack) { Text("‹ Zurück") }
+        TextButton(onClick = onBack) { Text(tr("‹ Zurück")) }
         if (busy) LinearProgressIndicator(Modifier.fillMaxWidth())
         error?.let { Text(it, color = MaterialTheme.colorScheme.error, modifier = Modifier.announce(urgent = true)) }
         // Erstes Laden sichtbar machen, Fehler mit erneutem Versuch (UX-Audit 31.10. A07)
@@ -264,13 +265,13 @@ fun MemberScreen(
             if (error == null) {
                 if (!busy) LinearProgressIndicator(Modifier.fillMaxWidth())
             } else {
-                TextButton(onClick = { attempt++ }) { Text("Erneut laden") }
+                TextButton(onClick = { attempt++ }) { Text(tr("Erneut laden")) }
             }
             return@Column
         }
         val todayIso = today().toString()
         Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            RemoteImage(d.photo?.approved?.thumbnailUrl, client::image, "Foto", Modifier.width(84.dp).height(108.dp))
+            RemoteImage(d.photo?.approved?.thumbnailUrl, client::image, tr("Foto"), Modifier.width(84.dp).height(108.dp))
             Column {
                 Text(d.name, style = MaterialTheme.typography.headlineSmall, modifier = Modifier.asHeading())
                 Text(
@@ -283,7 +284,7 @@ fun MemberScreen(
                 d.currentDepartments(todayIso).takeIf { it.isNotEmpty() }?.let { list ->
                     Text(list.joinToString(", ") { it.departmentName }, style = MaterialTheme.typography.bodySmall)
                 }
-                d.birthDate?.let { Text("geboren ${formatPlainDate(it)}", style = MaterialTheme.typography.bodySmall) }
+                d.birthDate?.let { Text(tr("geboren {date}", "date" to formatPlainDate(it)), style = MaterialTheme.typography.bodySmall) }
             }
         }
         // Kontakt: Anrufen, Mail, Karte
@@ -291,7 +292,7 @@ fun MemberScreen(
             if (c.phone.isNotBlank()) {
                 ListItem(
                     headlineContent = { Text(c.phone) },
-                    overlineContent = { Text("Telefon") },
+                    overlineContent = { Text(tr("Telefon")) },
                     modifier = Modifier.clickable { context.startActivity(Intent(Intent.ACTION_DIAL, Uri.parse("tel:${c.phone}"))) },
                 )
             }
@@ -306,7 +307,7 @@ fun MemberScreen(
             if (address.isNotBlank()) {
                 ListItem(
                     headlineContent = { Text(address) },
-                    overlineContent = { Text("Anschrift") },
+                    overlineContent = { Text(tr("Anschrift")) },
                     modifier = Modifier.clickable {
                         context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("geo:0,0?q=" + Uri.encode(address))))
                     },
@@ -317,49 +318,49 @@ fun MemberScreen(
         d.photo?.pending?.let { pending ->
             Card(Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("Neues Foto vom Mitglied", style = MaterialTheme.typography.titleSmall, modifier = Modifier.asHeading())
-                    RemoteImage(pending.url, client::image, "Neues Foto", Modifier.width(140.dp).height(180.dp))
+                    Text(tr("Neues Foto vom Mitglied"), style = MaterialTheme.typography.titleSmall, modifier = Modifier.asHeading())
+                    RemoteImage(pending.url, client::image, tr("Neues Foto"), Modifier.width(140.dp).height(180.dp))
                     if (PHOTOS_MANAGE in permissions) {
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             Button(onClick = {
                                 launchChange {
                                     val r = client.decidePhoto(id, true)
                                     detail = client.member(id)
-                                    onChanged("Foto freigegeben", r.changeSet)
+                                    onChanged(tr("Foto freigegeben"), r.changeSet)
                                 }
-                            }) { Text("Freigeben") }
+                            }) { Text(tr("Freigeben")) }
                             OutlinedButton(onClick = {
                                 launchChange {
                                     val r = client.decidePhoto(id, false)
                                     detail = client.member(id)
-                                    onChanged("Foto abgelehnt", r.changeSet)
+                                    onChanged(tr("Foto abgelehnt"), r.changeSet)
                                 }
-                            }) { Text("Ablehnen") }
+                            }) { Text(tr("Ablehnen")) }
                         }
                     } else {
-                        Text("Freigeben darf, wer Fotos verwalten darf.", style = MaterialTheme.typography.bodySmall)
+                        Text(tr("Freigeben darf, wer Fotos verwalten darf."), style = MaterialTheme.typography.bodySmall)
                     }
                 }
             }
         }
         if (canEdit && d.status != "former") {
             HorizontalDivider()
-            Text("Bearbeiten", style = MaterialTheme.typography.titleMedium, modifier = Modifier.asHeading())
-            OutlinedButton(onClick = { dialog = Dialog.Edit }, modifier = Modifier.fillMaxWidth()) { Text("Stammdaten und Kontakt") }
-            OutlinedButton(onClick = { dialog = Dialog.ChangeType }, modifier = Modifier.fillMaxWidth()) { Text("Mitgliedsart wechseln") }
-            OutlinedButton(onClick = { dialog = Dialog.Move }, modifier = Modifier.fillMaxWidth()) { Text("Untereinheit wechseln") }
-            LabeledSwitch("Zahlt Beitrag selbst", d.paysFeeSelf, { value ->
+            Text(tr("Bearbeiten"), style = MaterialTheme.typography.titleMedium, modifier = Modifier.asHeading())
+            OutlinedButton(onClick = { dialog = Dialog.Edit }, modifier = Modifier.fillMaxWidth()) { Text(tr("Stammdaten und Kontakt")) }
+            OutlinedButton(onClick = { dialog = Dialog.ChangeType }, modifier = Modifier.fillMaxWidth()) { Text(tr("Mitgliedsart wechseln")) }
+            OutlinedButton(onClick = { dialog = Dialog.Move }, modifier = Modifier.fillMaxWidth()) { Text(tr("Untereinheit wechseln")) }
+            LabeledSwitch(tr("Zahlt Beitrag selbst"), d.paysFeeSelf, { value ->
                 confirm(mapOf("action" to "fee_self", "pays_fee_self" to value)) {
                     client.update(id, mapOf("pays_fee_self" to JsonPrimitive(value)))
                 }
             })
             OutlinedButton(onClick = { dialog = Dialog.Exit }, modifier = Modifier.fillMaxWidth()) {
-                Text("Austritt eintragen", color = MaterialTheme.colorScheme.error)
+                Text(tr("Austritt eintragen"), color = MaterialTheme.colorScheme.error)
             }
         }
         if (canEdit && d.status == "former") {
             HorizontalDivider()
-            OutlinedButton(onClick = { dialog = Dialog.Reentry }, modifier = Modifier.fillMaxWidth()) { Text("Wiedereintritt eintragen") }
+            OutlinedButton(onClick = { dialog = Dialog.Reentry }, modifier = Modifier.fillMaxWidth()) { Text(tr("Wiedereintritt eintragen")) }
         }
         AwardsSection(client, id, canEdit, errors, onChanged, reload)
         FieldsButton(client, id, canEdit, errors, onChanged, reload)
@@ -375,7 +376,7 @@ fun MemberScreen(
                 busy = true
                 dialogError = null
                 try {
-                    applyChange(client.update(id, values.mapValues { JsonPrimitive(it.value) }), "Stammdaten gespeichert")
+                    applyChange(client.update(id, values.mapValues { JsonPrimitive(it.value) }), tr("Stammdaten gespeichert"))
                     dialog = null
                 } catch (e: ApiException) {
                     dialogError = errors.message(e)
@@ -404,14 +405,14 @@ fun MemberScreen(
         Dialog.Reentry -> if (d != null) ReentryDialog(client, d, errors, onDismiss = { dialog = null }) { type, from ->
             dialog = null
             val preview = Preview(
-                "Wiedereintritt",
-                listOf("Ab ${formatPlainDate(from)} wieder Mitglied als ${type.name}.", "Frühere Zeiten und Nummern bleiben erhalten."),
+                tr("Wiedereintritt"),
+                listOf(tr("Ab {x1} wieder Mitglied als {name}.", "x1" to formatPlainDate(from), "name" to type.name), tr("Frühere Zeiten und Nummern bleiben erhalten.")),
             )
             dialog = Dialog.Confirm(preview) { client.reentry(id, from, type.id) }
         }
         is Dialog.Confirm -> ConfirmDialog(current.preview, onDismiss = { dialog = null }) {
             dialog = null
-            launchChange { applyChange(current.action(), current.preview.title.ifBlank { "Gespeichert" }) }
+            launchChange { applyChange(current.action(), current.preview.title.ifBlank { tr("Gespeichert") }) }
         }
     }
 }
@@ -420,16 +421,16 @@ fun MemberScreen(
 private fun ConfirmDialog(preview: Preview, onDismiss: () -> Unit, onConfirm: () -> Unit) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(preview.title.ifBlank { "Änderung bestätigen" }) },
+        title = { Text(preview.title.ifBlank { tr("Änderung bestätigen") }) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                Text("Das passiert:", style = MaterialTheme.typography.labelLarge)
+                Text(tr("Das passiert:"), style = MaterialTheme.typography.labelLarge)
                 preview.consequences.forEach { Text("• $it") }
-                Text("Danach lässt sich die Änderung rückgängig machen.", style = MaterialTheme.typography.bodySmall)
+                Text(tr("Danach lässt sich die Änderung rückgängig machen."), style = MaterialTheme.typography.bodySmall)
             }
         },
-        confirmButton = { Button(onClick = onConfirm) { Text("Bestätigen") } },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Abbrechen") } },
+        confirmButton = { Button(onClick = onConfirm) { Text(tr("Bestätigen")) } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(tr("Abbrechen")) } },
     )
 }
 
@@ -456,7 +457,7 @@ private fun EditDialog(d: MemberDetail, saving: Boolean, saveError: String?, onD
     var error by remember { mutableStateOf<String?>(null) }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Stammdaten und Kontakt") },
+        title = { Text(tr("Stammdaten und Kontakt")) },
         text = {
             Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 (error ?: saveError)?.let { Text(it, color = MaterialTheme.colorScheme.error, modifier = Modifier.announce(urgent = true)) }
@@ -465,7 +466,7 @@ private fun EditDialog(d: MemberDetail, saving: Boolean, saveError: String?, onD
                     OutlinedTextField(
                         value = values[key] ?: "",
                         onValueChange = { values = values + (key to it) },
-                        label = { Text(if (key == "birth_date") "Geburtsdatum (TT.MM.JJJJ)" else FIELD_LABELS[key] ?: key) },
+                        label = { Text(if (key == "birth_date") tr("Geburtsdatum (TT.MM.JJJJ)") else FIELD_LABELS[key] ?: key) },
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(
                             keyboardType = when (key) {
@@ -478,7 +479,7 @@ private fun EditDialog(d: MemberDetail, saving: Boolean, saveError: String?, onD
                         modifier = Modifier.fillMaxWidth(),
                     )
                 }
-                Picker("Geschlecht", GENDERS, values["gender"] ?: "", { genderLabel(it) }) { values = values + ("gender" to it) }
+                Picker(tr("Geschlecht"), GENDERS, values["gender"] ?: "", { genderLabel(it) }) { values = values + ("gender" to it) }
             }
         },
         confirmButton = {
@@ -486,13 +487,13 @@ private fun EditDialog(d: MemberDetail, saving: Boolean, saveError: String?, onD
                 error = null
                 val changes = masterDataChanges(before, values)
                 when {
-                    changes == null -> error = "Bitte das Geburtsdatum als TT.MM.JJJJ eingeben."
+                    changes == null -> error = tr("Bitte das Geburtsdatum als TT.MM.JJJJ eingeben.")
                     changes.isEmpty() -> onDismiss()
                     else -> onSave(changes)
                 }
-            }) { Text("Speichern") }
+            }) { Text(tr("Speichern")) }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Abbrechen") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(tr("Abbrechen")) } },
     )
 }
 
@@ -505,9 +506,9 @@ private fun <T> Picker(label: String, options: List<Pair<T, String>>, selected: 
         Box {
             OutlinedButton(
                 onClick = { open = true },
-                modifier = Modifier.fillMaxWidth().dropdown(label, selected?.let(show) ?: "nichts gewählt", open),
+                modifier = Modifier.fillMaxWidth().dropdown(label, selected?.let(show) ?: tr("nichts gewählt"), open),
             ) {
-                Text((selected?.let(show) ?: "Bitte wählen") + " ▾")
+                Text((selected?.let(show) ?: tr("Bitte wählen")) + " ▾")
             }
             DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
                 options.forEach { (value, text) ->
@@ -556,13 +557,13 @@ private fun ChangeTypeDialog(
     }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Mitgliedsart wechseln") },
+        title = { Text(tr("Mitgliedsart wechseln")) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("Bisher: ${d.currentType?.memberTypeName ?: "keine"}")
+                Text(tr("Bisher: {x1}", "x1" to d.currentType?.memberTypeName ?: "keine"))
                 error?.let { Text(it, color = MaterialTheme.colorScheme.error, modifier = Modifier.announce(urgent = true)) }
-                Picker("Neue Mitgliedsart", types.map { it to it.name }, chosen, { it.name }) { chosen = it }
-                DateField("Ab", from) { from = it }
+                Picker(tr("Neue Mitgliedsart"), types.map { it to it.name }, chosen, { it.name }) { chosen = it }
+                DateField(tr("Ab"), from) { from = it }
             }
         },
         confirmButton = {
@@ -570,13 +571,13 @@ private fun ChangeTypeDialog(
                 val iso = parseGermanDate(from)
                 val type = chosen
                 when {
-                    type == null -> error = "Bitte eine Mitgliedsart wählen."
-                    iso == null -> error = "Bitte das Datum als TT.MM.JJJJ eingeben."
+                    type == null -> error = tr("Bitte eine Mitgliedsart wählen.")
+                    iso == null -> error = tr("Bitte das Datum als TT.MM.JJJJ eingeben.")
                     else -> onNext(type, iso)
                 }
-            }) { Text("Weiter") }
+            }) { Text(tr("Weiter")) }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Abbrechen") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(tr("Abbrechen")) } },
     )
 }
 
@@ -602,13 +603,13 @@ private fun MoveDialog(
     }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Untereinheit wechseln") },
+        title = { Text(tr("Untereinheit wechseln")) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("Bisher: " + d.currentDepartments(today().toString()).joinToString(", ") { it.departmentName }.ifBlank { "keine" })
+                Text(tr("Bisher: ") + d.currentDepartments(today().toString()).joinToString(", ") { it.departmentName }.ifBlank { "keine" })
                 error?.let { Text(it, color = MaterialTheme.colorScheme.error, modifier = Modifier.announce(urgent = true)) }
-                Picker("Neu", units.map { it to it.label }, chosen, { it.label }) { chosen = it }
-                DateField("Ab", from) { from = it }
+                Picker(tr("Neu"), units.map { it to it.label }, chosen, { it.label }) { chosen = it }
+                DateField(tr("Ab"), from) { from = it }
             }
         },
         confirmButton = {
@@ -616,13 +617,13 @@ private fun MoveDialog(
                 val iso = parseGermanDate(from)
                 val unit = chosen
                 when {
-                    unit == null -> error = "Bitte eine Untereinheit wählen."
-                    iso == null -> error = "Bitte das Datum als TT.MM.JJJJ eingeben."
+                    unit == null -> error = tr("Bitte eine Untereinheit wählen.")
+                    iso == null -> error = tr("Bitte das Datum als TT.MM.JJJJ eingeben.")
                     else -> onNext(unit, iso)
                 }
-            }) { Text("Weiter") }
+            }) { Text(tr("Weiter")) }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Abbrechen") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(tr("Abbrechen")) } },
     )
 }
 
@@ -634,13 +635,13 @@ private fun ExitDialog(d: MemberDetail, onDismiss: () -> Unit, onNext: (String, 
     var error by remember { mutableStateOf<String?>(null) }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Austritt von ${d.name}") },
+        title = { Text(tr("Austritt von {name}", "name" to d.name)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 error?.let { Text(it, color = MaterialTheme.colorScheme.error, modifier = Modifier.announce(urgent = true)) }
-                DateField("Austritt zum", date) { date = it }
-                Picker("Grund", d.exitReasons.map { it.value to it.label }, reason, { v -> d.exitReasons.first { it.value == v }.label }) { reason = it }
-                OutlinedTextField(value = note, onValueChange = { note = it.take(200) }, label = { Text("Notiz (optional)") }, modifier = Modifier.fillMaxWidth())
+                DateField(tr("Austritt zum"), date) { date = it }
+                Picker(tr("Grund"), d.exitReasons.map { it.value to it.label }, reason, { v -> d.exitReasons.first { it.value == v }.label }) { reason = it }
+                OutlinedTextField(value = note, onValueChange = { note = it.take(200) }, label = { Text(tr("Notiz (optional)")) }, modifier = Modifier.fillMaxWidth())
             }
         },
         confirmButton = {
@@ -648,13 +649,13 @@ private fun ExitDialog(d: MemberDetail, onDismiss: () -> Unit, onNext: (String, 
                 val iso = parseGermanDate(date)
                 val r = reason
                 when {
-                    iso == null -> error = "Bitte das Datum als TT.MM.JJJJ eingeben."
-                    r == null -> error = "Bitte einen Grund wählen."
+                    iso == null -> error = tr("Bitte das Datum als TT.MM.JJJJ eingeben.")
+                    r == null -> error = tr("Bitte einen Grund wählen.")
                     else -> onNext(iso, r, note.trim())
                 }
-            }) { Text("Weiter") }
+            }) { Text(tr("Weiter")) }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Abbrechen") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(tr("Abbrechen")) } },
     )
 }
 
@@ -680,7 +681,7 @@ fun ChangeRequestsScreen(client: AdminClient, errors: AdminErrors, onBack: () ->
         scope.launch {
             try {
                 val r = client.decide(cr.id, accept, "", overwrite)
-                onChanged(if (accept) "Änderung von ${cr.memberName} übernommen" else "Änderung von ${cr.memberName} abgelehnt", r.changeSet)
+                onChanged(if (accept) tr("Änderung von {memberName} übernommen", "memberName" to cr.memberName) else tr("Änderung von {memberName} abgelehnt", "memberName" to cr.memberName), r.changeSet)
                 reload++
             } catch (e: ApiException) {
                 if (e.status == 409) conflict = cr to (e.message ?: "") else error = errors.message(e)
@@ -689,14 +690,14 @@ fun ChangeRequestsScreen(client: AdminClient, errors: AdminErrors, onBack: () ->
     }
 
     LazyColumn(Modifier.fillMaxSize().padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        item { TextButton(onClick = onBack) { Text("‹ Zurück") } }
-        item { Text("Änderungsmeldungen", style = MaterialTheme.typography.titleMedium, modifier = Modifier.asHeading()) }
+        item { TextButton(onClick = onBack) { Text(tr("‹ Zurück")) } }
+        item { Text(tr("Änderungsmeldungen"), style = MaterialTheme.typography.titleMedium, modifier = Modifier.asHeading()) }
         error?.let { item { Text(it, color = MaterialTheme.colorScheme.error) } }
         val list = items
         if (list == null) {
             item { LinearProgressIndicator(Modifier.fillMaxWidth()) }
         } else if (list.isEmpty()) {
-            item { Text("Keine offenen Meldungen.") }
+            item { Text(tr("Keine offenen Meldungen.")) }
         }
         items(list ?: emptyList(), key = { it.id }) { cr ->
             Card(Modifier.fillMaxWidth()) {
@@ -710,8 +711,8 @@ fun ChangeRequestsScreen(client: AdminClient, errors: AdminErrors, onBack: () ->
                     }
                     if (cr.message.isNotBlank()) Text("„${cr.message}“", style = MaterialTheme.typography.bodySmall)
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Button(onClick = { decide(cr, true) }) { Text("Übernehmen") }
-                        OutlinedButton(onClick = { decide(cr, false) }) { Text("Ablehnen") }
+                        Button(onClick = { decide(cr, true) }) { Text(tr("Übernehmen")) }
+                        OutlinedButton(onClick = { decide(cr, false) }) { Text(tr("Ablehnen")) }
                     }
                 }
             }
@@ -720,15 +721,15 @@ fun ChangeRequestsScreen(client: AdminClient, errors: AdminErrors, onBack: () ->
     conflict?.let { (cr, text) ->
         AlertDialog(
             onDismissRequest = { conflict = null },
-            title = { Text("Inzwischen geändert") },
+            title = { Text(tr("Inzwischen geändert")) },
             text = { Text(text) },
             confirmButton = {
                 Button(onClick = {
                     conflict = null
                     decide(cr, true, overwrite = true)
-                }) { Text("Trotzdem übernehmen") }
+                }) { Text(tr("Trotzdem übernehmen")) }
             },
-            dismissButton = { TextButton(onClick = { conflict = null }) { Text("Abbrechen") } },
+            dismissButton = { TextButton(onClick = { conflict = null }) { Text(tr("Abbrechen")) } },
         )
     }
 }
@@ -752,24 +753,24 @@ fun OccasionsSection(client: AdminClient, errors: AdminErrors, onOpen: (Int) -> 
     }
     LazyColumn(Modifier.fillMaxSize()) {
         error?.let { item { Text(it, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(16.dp)) } }
-        item { Header("Geburtstage (30 Tage)") }
+        item { Header(tr("Geburtstage (30 Tage)")) }
         val b = birthdays
         if (b == null && error == null) item { LinearProgressIndicator(Modifier.fillMaxWidth().padding(16.dp)) }
-        if (b != null && b.isEmpty()) item { Text("Keine.", modifier = Modifier.padding(horizontal = 16.dp)) }
+        if (b != null && b.isEmpty()) item { Text(tr("Keine."), modifier = Modifier.padding(horizontal = 16.dp)) }
         items(b ?: emptyList()) { row ->
             ListItem(
                 headlineContent = { Text("${row.firstName} ${row.lastName}") },
-                supportingContent = { Text("${formatPlainDate(row.date)} · wird ${row.age}") },
+                supportingContent = { Text(tr("{x1} · wird {age}", "x1" to formatPlainDate(row.date), "age" to row.age)) },
                 modifier = Modifier.clickable { onOpen(row.memberId) },
             )
         }
-        item { Header("Jubiläen (90 Tage)") }
+        item { Header(tr("Jubiläen (90 Tage)")) }
         val j = jubilees
-        if (j != null && j.isEmpty()) item { Text("Keine.", modifier = Modifier.padding(horizontal = 16.dp)) }
+        if (j != null && j.isEmpty()) item { Text(tr("Keine."), modifier = Modifier.padding(horizontal = 16.dp)) }
         items(j ?: emptyList()) { row ->
             ListItem(
                 headlineContent = { Text("${row.firstName} ${row.lastName}") },
-                supportingContent = { Text("${formatPlainDate(row.date)} · ${row.years} Jahre ${row.organization}".trim()) },
+                supportingContent = { Text(tr("{date} · {years} Jahre {organization}", "date" to formatPlainDate(row.date), "years" to row.years, "organization" to row.organization).trim()) },
                 modifier = Modifier.clickable { onOpen(row.memberId) },
             )
         }
@@ -796,7 +797,7 @@ fun CardResultDialog(check: CardCheck, loadPublic: suspend (String) -> ByteArray
         },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(6.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                RemoteImage(check.photoUrl, loadPublic, "Foto", Modifier.width(140.dp).height(180.dp))
+                RemoteImage(check.photoUrl, loadPublic, tr("Foto"), Modifier.width(140.dp).height(180.dp))
                 listOfNotNull(check.firstName, check.lastName).joinToString(" ").takeIf { it.isNotBlank() }?.let {
                     Text(it, style = MaterialTheme.typography.titleLarge)
                 }
@@ -804,10 +805,10 @@ fun CardResultDialog(check: CardCheck, loadPublic: suspend (String) -> ByteArray
                 if (check.departments.isNotEmpty()) Text(check.departments.joinToString(", "), style = MaterialTheme.typography.bodySmall)
             }
         },
-        confirmButton = { TextButton(onClick = onDismiss) { Text("Schließen") } },
+        confirmButton = { TextButton(onClick = onDismiss) { Text(tr("Schließen")) } },
         dismissButton = {
             val id = check.membership
-            if (id != null) TextButton(onClick = { onOpen(id) }) { Text("Akte öffnen") }
+            if (id != null) TextButton(onClick = { onOpen(id) }) { Text(tr("Akte öffnen")) }
         },
     )
 }

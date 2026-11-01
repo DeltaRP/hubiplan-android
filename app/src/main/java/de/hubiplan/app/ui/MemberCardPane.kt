@@ -56,6 +56,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.text.DateFormat
 import java.util.Date
+import de.hubiplan.app.tr
 
 /** Ab diesem Alter weist die App darauf hin, dass der Ausweis ohne Netz angezeigt wird. */
 private const val STALE_MS = 24L * 60 * 60 * 1000
@@ -96,31 +97,30 @@ fun MemberCardSection(store: CardStore, accessId: Int, vm: AppViewModel?) {
     val current = stored
     val card = current?.card
     val display = card?.display
-    Text("Mitgliedsausweis", style = MaterialTheme.typography.titleMedium, modifier = Modifier.asHeading())
+    Text(tr("Mitgliedsausweis"), style = MaterialTheme.typography.titleMedium, modifier = Modifier.asHeading())
     when {
         current == null -> Text(
-            if (offline) "Ohne Netz ist noch kein Ausweis gespeichert. Er erscheint, sobald die App einmal online war."
-            else "Ausweis wird geladen …",
+            if (offline) tr("Ohne Netz ist noch kein Ausweis gespeichert. Er erscheint, sobald die App einmal online war.")
+            else tr("Ausweis wird geladen …"),
             style = MaterialTheme.typography.bodyMedium,
         )
         card?.state == "revoked" -> Text(
-            "Dein Ausweis ist gesperrt. Bitte wende dich an den Vorstand.",
+            tr("Dein Ausweis ist gesperrt. Bitte wende dich an den Vorstand."),
             color = MaterialTheme.colorScheme.error,
         )
         display == null || card.url.isNullOrBlank() -> Text(
-            "Für dich gibt es zurzeit keinen gültigen Ausweis, z. B. weil die Mitgliedschaft noch nicht begonnen hat oder beendet ist.",
+            tr("Für dich gibt es zurzeit keinen gültigen Ausweis, z. B. weil die Mitgliedschaft noch nicht begonnen hat oder beendet ist."),
             style = MaterialTheme.typography.bodyMedium,
         )
         else -> {
-            MemberCardView(current, Modifier.fillMaxWidth().widthIn(max = 480.dp).clickable(onClickLabel = "QR-Code groß anzeigen") { big = true })
+            MemberCardView(current, Modifier.fillMaxWidth().widthIn(max = 480.dp).clickable(onClickLabel = tr("QR-Code groß anzeigen")) { big = true })
             if (offline || System.currentTimeMillis() - current.savedAt > STALE_MS) {
                 Text(
-                    "Ohne Netz angezeigt, Stand ${DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT).format(Date(current.savedAt))}. " +
-                        "Wer den QR-Code prüft, sieht immer den aktuellen Stand.",
+                    tr("Ohne Netz angezeigt, Stand {x1}. Wer den QR-Code prüft, sieht immer den aktuellen Stand.", "x1" to DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT).format(Date(current.savedAt))),
                     style = MaterialTheme.typography.bodySmall,
                 )
             }
-            TextButton(onClick = { big = true }) { Text("QR-Code groß zeigen") }
+            TextButton(onClick = { big = true }) { Text(tr("QR-Code groß zeigen")) }
         }
     }
     if (big && current != null && card?.url != null && display != null) {
@@ -150,14 +150,14 @@ private fun MemberCardView(stored: StoredCard, modifier: Modifier = Modifier) {
             logo?.let { Image(it.asImageBitmap(), contentDescription = null, modifier = Modifier.size(36.dp)) }
             Column {
                 Text(display.club, color = onPrimary, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleSmall)
-                Text("Mitgliedsausweis", color = onPrimary, style = MaterialTheme.typography.labelSmall)
+                Text(tr("Mitgliedsausweis"), color = onPrimary, style = MaterialTheme.typography.labelSmall)
             }
         }
         Row(Modifier.fillMaxWidth().padding(12.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             photo?.let {
                 Image(
                     it.asImageBitmap(),
-                    contentDescription = "Foto",
+                    contentDescription = tr("Foto"),
                     contentScale = ContentScale.Crop,
                     modifier = Modifier.width(72.dp).aspectRatio(3f / 4f).clip(RoundedCornerShape(4.dp)),
                 )
@@ -166,8 +166,8 @@ private fun MemberCardView(stored: StoredCard, modifier: Modifier = Modifier) {
                 Text(display.firstName, style = MaterialTheme.typography.bodyMedium)
                 Text(display.lastName, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                 CardLine(display.departmentLabel, display.departments.joinToString(", "))
-                CardLine("Mitgliedsnummer", display.clubNumber)
-                CardLine("Mitgliedsart", display.memberType.orEmpty())
+                CardLine(tr("Mitgliedsnummer"), display.clubNumber)
+                CardLine(tr("Mitgliedsart"), display.memberType.orEmpty())
                 Text(
                     display.statusLabel,
                     color = if (display.status == "active") Color(0xFF1B5E20) else Color(0xFFB71C1C),
@@ -178,7 +178,7 @@ private fun MemberCardView(stored: StoredCard, modifier: Modifier = Modifier) {
             qr?.let {
                 Image(
                     it.asImageBitmap(),
-                    contentDescription = "QR-Code zur Prüfung",
+                    contentDescription = tr("QR-Code zur Prüfung"),
                     filterQuality = FilterQuality.None,
                     modifier = Modifier.size(96.dp),
                 )
@@ -215,7 +215,7 @@ private fun BigCardDialog(stored: StoredCard, onClose: () -> Unit) {
     }
     val qr = rememberQr(stored.card.url.orEmpty(), 800)
     Dialog(onDismissRequest = onClose, properties = DialogProperties(usePlatformDefaultWidth = false)) {
-        Box(Modifier.fillMaxSize().background(Color.White).clickable(onClickLabel = "Schließen", onClick = onClose), contentAlignment = Alignment.Center) {
+        Box(Modifier.fillMaxSize().background(Color.White).clickable(onClickLabel = tr("Schließen"), onClick = onClose), contentAlignment = Alignment.Center) {
             Column(
                 Modifier.padding(24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -232,7 +232,7 @@ private fun BigCardDialog(stored: StoredCard, onClose: () -> Unit) {
                 qr?.let {
                     Image(
                         it.asImageBitmap(),
-                        contentDescription = "QR-Code zur Prüfung",
+                        contentDescription = tr("QR-Code zur Prüfung"),
                         filterQuality = FilterQuality.None,
                         modifier = Modifier.fillMaxWidth().widthIn(max = 420.dp).aspectRatio(1f),
                     )
@@ -242,7 +242,7 @@ private fun BigCardDialog(stored: StoredCard, onClose: () -> Unit) {
                 androidx.compose.material3.OutlinedButton(
                     onClick = onClose,
                     colors = androidx.compose.material3.ButtonDefaults.outlinedButtonColors(contentColor = Color.Black),
-                ) { Text("Schließen") }
+                ) { Text(tr("Schließen")) }
             }
         }
     }

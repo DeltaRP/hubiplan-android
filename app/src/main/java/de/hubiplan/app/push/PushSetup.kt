@@ -10,6 +10,7 @@ import de.hubiplan.app.data.PushWay
 import de.hubiplan.app.sync.Notifications
 import de.hubiplan.app.sync.SyncWorker
 import kotlinx.coroutines.flow.first
+import de.hubiplan.app.tr
 
 /**
  * Push einrichten, Endpunkt an HUBIplan melden und Nachrichten anzeigen. Jedes Konto (je
@@ -45,18 +46,18 @@ object PushSetup {
 
     private suspend fun enableGoogle(context: Context, store: AccountStore, ways: List<PushWay>?, fcmToken: String? = null) {
         if (ways == null) {
-            store.setPushEndpoint(null, "HUBIplan ist gerade nicht erreichbar.")
+            store.setPushEndpoint(null, tr("HUBIplan ist gerade nicht erreichbar."))
             return
         }
         val fcmWay = ways.firstOrNull { it.kind == "fcm" }
         val gateway = fcmWay?.gateway
         if (gateway.isNullOrBlank()) {
-            store.setPushEndpoint(null, "Dein Verein bietet Push über Google nicht an. Eine UnifiedPush-App wie „ntfy“ geht immer.")
+            store.setPushEndpoint(null, tr("Dein Verein bietet Push über Google nicht an. Eine UnifiedPush-App wie „ntfy“ geht immer."))
             return
         }
         val token = fcmToken ?: GooglePush.token(context)
         if (token == null) {
-            store.setPushEndpoint(null, "Google-Push ist auf diesem Gerät nicht verfügbar.")
+            store.setPushEndpoint(null, tr("Google-Push ist auf diesem Gerät nicht verfügbar."))
             return
         }
         // An den VAPID-Schlüssel der Instanz binden (Gateway nimmt nur deren Nachrichten an)
@@ -164,7 +165,7 @@ object PushSetup {
 
     suspend fun onFailed(context: Context, token: String?, reason: String?) {
         val store = storeFor(context, token) ?: return
-        store.setPushEndpoint(null, "Die Push-App hat die Anmeldung abgelehnt" + (reason?.let { " ($it)" } ?: "") + ".")
+        store.setPushEndpoint(null, tr("Die Push-App hat die Anmeldung abgelehnt") + (reason?.let { " ($it)" } ?: "") + ".")
     }
 
     suspend fun onUnregistered(context: Context, token: String?) {

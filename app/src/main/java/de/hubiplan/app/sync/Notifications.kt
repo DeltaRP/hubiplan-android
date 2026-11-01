@@ -14,6 +14,7 @@ import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import de.hubiplan.app.MainActivity
 import de.hubiplan.app.R
+import de.hubiplan.app.tr
 
 /** Benachrichtigungskanäle (je Art einzeln abschaltbar in den Android-Einstellungen). */
 object Notifications {
@@ -28,13 +29,13 @@ object Notifications {
     fun createChannels(context: Context) {
         val manager = context.getSystemService(NotificationManager::class.java)
         manager.createNotificationChannel(
-            NotificationChannel(CHANNEL_MESSAGES, "Mitteilungen", NotificationManager.IMPORTANCE_HIGH).apply {
-                description = "Mitteilungen und Rundschreiben des Vorstands"
+            NotificationChannel(CHANNEL_MESSAGES, tr("Mitteilungen"), NotificationManager.IMPORTANCE_HIGH).apply {
+                description = tr("Mitteilungen und Rundschreiben des Vorstands")
             },
         )
         manager.createNotificationChannel(
-            NotificationChannel(CHANNEL_RSVP, "Rückmeldung fehlt", NotificationManager.IMPORTANCE_DEFAULT).apply {
-                description = "Hinweis vor dem Anmeldeschluss, wenn du noch nicht zu- oder abgesagt hast"
+            NotificationChannel(CHANNEL_RSVP, tr("Rückmeldung fehlt"), NotificationManager.IMPORTANCE_DEFAULT).apply {
+                description = tr("Hinweis vor dem Anmeldeschluss, wenn du noch nicht zu- oder abgesagt hast")
             },
         )
     }
@@ -101,16 +102,16 @@ object Notifications {
         )
         val notification = NotificationCompat.Builder(context, CHANNEL_RSVP)
             .setSmallIcon(R.drawable.ic_notification)
-            .setContentTitle("Rückmeldung fehlt: $title")
+            .setContentTitle(tr("Rückmeldung fehlt: {title}", "title" to title))
             .setContentText(text)
             .setStyle(NotificationCompat.BigTextStyle().bigText(text))
             .setContentIntent(open)
             // Wappen der Einheit als großes Bild (das kleine Symbol muss einfarbig sein und bleibt HUBIplan)
             .setLargeIcon(logo)
             .setAutoCancel(true)
-            .addAction(action("yes", "Zusage", id * 2))
-            .addAction(action("no", "Absage", id * 2 + 1))
-            .lockScreen(context, CHANNEL_RSVP, "Rückmeldung fehlt")
+            .addAction(action("yes", tr("Zusage"), id * 2))
+            .addAction(action("no", tr("Absage"), id * 2 + 1))
+            .lockScreen(context, CHANNEL_RSVP, tr("Rückmeldung fehlt"))
             .build()
         try {
             NotificationManagerCompat.from(context).notify(id, notification)
@@ -143,10 +144,10 @@ object Notifications {
                 .putExtra(EXTRA_CIRCULAR, circularId),
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
         )
-        val body = if (short) text else text.ifBlank { "Neues Rundschreiben" }
+        val body = if (short) text else text.ifBlank { tr("Neues Rundschreiben") }
         val notification = NotificationCompat.Builder(context, CHANNEL_MESSAGES)
             .setSmallIcon(R.drawable.ic_notification)
-            .setContentTitle(title.ifBlank { "Mitteilung" })
+            .setContentTitle(title.ifBlank { tr("Mitteilung") })
             .setContentText(body)
             .setSubText(from.ifBlank { null })
             .setStyle(NotificationCompat.BigTextStyle().bigText(body))
@@ -156,7 +157,7 @@ object Notifications {
             // Wappen der Einheit als großes Bild (das kleine Symbol muss einfarbig sein und bleibt HUBIplan)
             .setLargeIcon(logo)
             .setAutoCancel(true)
-            .lockScreen(context, CHANNEL_MESSAGES, "Neue Mitteilung")
+            .lockScreen(context, CHANNEL_MESSAGES, tr("Neue Mitteilung"))
             .build()
         try {
             NotificationManagerCompat.from(context).notify(id, notification)
@@ -171,7 +172,7 @@ object Notifications {
             .setContentTitle(title)
             .setContentText(text)
             .setAutoCancel(true)
-            .lockScreen(context, CHANNEL_RSVP, "Neuer Hinweis")
+            .lockScreen(context, CHANNEL_RSVP, tr("Neuer Hinweis"))
             .build()
         try {
             NotificationManagerCompat.from(context).notify(id, notification)
@@ -199,7 +200,7 @@ object Notifications {
             .setContentIntent(open)
             .setLargeIcon(logo)
             .setAutoCancel(true)
-            .lockScreen(context, CHANNEL_MESSAGES, "Neuer Hinweis")
+            .lockScreen(context, CHANNEL_MESSAGES, tr("Neuer Hinweis"))
             .build()
         try {
             NotificationManagerCompat.from(context).notify(id, notification)

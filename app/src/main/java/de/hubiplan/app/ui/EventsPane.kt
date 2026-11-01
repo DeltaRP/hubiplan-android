@@ -41,6 +41,7 @@ import de.hubiplan.app.data.Occurrence
 import de.hubiplan.app.data.PortalAccess
 import java.time.LocalDate
 import kotlinx.coroutines.launch
+import de.hubiplan.app.tr
 
 /** Termine wie im Kalender-Abo: von heute bis gut ein Jahr voraus. */
 private const val DAYS_AHEAD = 400L
@@ -67,15 +68,15 @@ fun EventsPane(access: PortalAccess, vm: AppViewModel) {
     ListDetail(
         hasDetail = selected != null,
         onBack = { selected = null },
-        emptyDetail = "Termin auswählen",
+        emptyDetail = tr("Termin auswählen"),
         list = {
             when {
                 error != null -> Column(Modifier.padding(16.dp)) {
                     Text(error ?: "", color = MaterialTheme.colorScheme.error)
-                    TextButton(onClick = { reloadKey++ }) { Text("Erneut laden") }
+                    TextButton(onClick = { reloadKey++ }) { Text(tr("Erneut laden")) }
                 }
                 items == null -> Loading()
-                items!!.isEmpty() -> Message("Keine anstehenden Termine.")
+                items!!.isEmpty() -> Message(tr("Keine anstehenden Termine."))
                 else -> LazyColumn(Modifier.fillMaxSize()) {
                     items(items!!, key = { it.key }) { occ ->
                         EventRow(occ, occ.key == selected) { selected = occ.key }
@@ -115,7 +116,7 @@ private fun EventRow(occ: Occurrence, isSelected: Boolean, onClick: () -> Unit) 
                 Text(formatWhen(occ.startsAt, occ.endsAt, occ.allDay))
                 val place = listOf(occ.location, occ.owner).filter { it.isNotBlank() }.joinToString(" · ")
                 if (place.isNotBlank()) Text(place, style = MaterialTheme.typography.bodySmall)
-                if (occ.isCancelled) Text("Abgesagt", color = MaterialTheme.colorScheme.error)
+                if (occ.isCancelled) Text(tr("Abgesagt"), color = MaterialTheme.colorScheme.error)
             }
         },
         trailingContent = {
@@ -180,19 +181,19 @@ private fun EventDetailView(
         Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        TextButton(onClick = onBack) { Text("‹ Zurück") }
+        TextButton(onClick = onBack) { Text(tr("‹ Zurück")) }
         error?.let { Text(it, color = MaterialTheme.colorScheme.error, modifier = Modifier.announce(urgent = true)) }
         if (e == null) {
-            if (error == null) Loading() else TextButton(onClick = { attempt++ }) { Text("Erneut laden") }
+            if (error == null) Loading() else TextButton(onClick = { attempt++ }) { Text(tr("Erneut laden")) }
             return@Column
         }
         // Datum, Ort und Absage des gewählten Einzeltermins, nicht des ersten der Serie (A05)
         Text(e.title, style = MaterialTheme.typography.headlineSmall, modifier = Modifier.asHeading())
         Text(formatWhen(occ.startsAt, occ.endsAt, occ.allDay), style = MaterialTheme.typography.titleMedium)
-        if (series) Text("Termin einer Serie", style = MaterialTheme.typography.bodySmall)
+        if (series) Text(tr("Termin einer Serie"), style = MaterialTheme.typography.bodySmall)
         if (occ.isCancelled || (!series && e.isCancelled)) {
             val note = occ.note.ifBlank { if (series) "" else e.cancelNote }
-            Text("Abgesagt" + if (note.isNotBlank()) ": $note" else "", color = MaterialTheme.colorScheme.error)
+            Text(tr("Abgesagt") + if (note.isNotBlank()) ": $note" else "", color = MaterialTheme.colorScheme.error)
         } else if (occ.note.isNotBlank()) {
             Text(occ.note)
         }
@@ -204,7 +205,7 @@ private fun EventDetailView(
 
         if (e.rsvp.enabled) {
             HorizontalDivider()
-            if (series) Text("Bei Serien gilt die Rückmeldung für alle Termine der Serie.", style = MaterialTheme.typography.bodySmall)
+            if (series) Text(tr("Bei Serien gilt die Rückmeldung für alle Termine der Serie."), style = MaterialTheme.typography.bodySmall)
             RsvpSection(e, busy) { status, guests ->
                 val api = vm.api() ?: return@RsvpSection
                 change {
@@ -220,17 +221,17 @@ private fun RsvpSection(e: EventDetail, busy: Boolean, onRespond: (String?, Int)
     val rsvp = e.rsvp
     val mine = rsvp.mine
     var guests by remember(e.id, mine?.guests) { mutableIntStateOf(mine?.guests ?: 0) }
-    Text("Rückmeldung", style = MaterialTheme.typography.titleMedium, modifier = Modifier.asHeading())
-    rsvp.deadline?.let { Text("Anmeldeschluss: ${formatDate(it)}") }
-    rsvp.free?.let { Text("Noch $it Plätze frei") }
+    Text(tr("Rückmeldung"), style = MaterialTheme.typography.titleMedium, modifier = Modifier.asHeading())
+    rsvp.deadline?.let { Text(tr("Anmeldeschluss: {date}", "date" to formatDate(it))) }
+    rsvp.free?.let { Text(tr("Noch {it} Plätze frei", "it" to it)) }
     Text(
         when (mine?.status) {
             "yes" -> {
                 val count = mine?.guests ?: 0
-                "Du hast zugesagt" + if (count > 0) " (mit $count Begleitung)." else "."
+                tr("Du hast zugesagt") + if (count > 0) tr(" (mit {count} Begleitung).", "count" to count) else "."
             }
-            "no" -> "Du hast abgesagt."
-            else -> "Du hast dich noch nicht zurückgemeldet."
+            "no" -> tr("Du hast abgesagt.")
+            else -> tr("Du hast dich noch nicht zurückgemeldet.")
         },
     )
     if (!rsvp.canRespond) {
@@ -243,22 +244,22 @@ private fun RsvpSection(e: EventDetail, busy: Boolean, onRespond: (String?, Int)
                 onClick = { if (guests > 0) guests-- },
                 label = { Text("−") },
                 enabled = !busy,
-                modifier = Modifier.semantics { contentDescription = "Begleitperson entfernen" },
+                modifier = Modifier.semantics { contentDescription = tr("Begleitperson entfernen") },
             )
-            Text("Begleitpersonen: $guests", Modifier.padding(top = 14.dp))
+            Text(tr("Begleitpersonen: {guests}", "guests" to guests), Modifier.padding(top = 14.dp))
             AssistChip(
                 onClick = { if (guests < rsvp.maxGuests) guests++ },
                 label = { Text("+") },
                 enabled = !busy,
-                modifier = Modifier.semantics { contentDescription = "Begleitperson hinzufügen" },
+                modifier = Modifier.semantics { contentDescription = tr("Begleitperson hinzufügen") },
             )
         }
     }
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-        Button(onClick = { onRespond("yes", guests) }, enabled = !busy, modifier = Modifier.weight(1f)) { Text("Zusage") }
-        OutlinedButton(onClick = { onRespond("no", 0) }, enabled = !busy, modifier = Modifier.weight(1f)) { Text("Absage") }
+        Button(onClick = { onRespond("yes", guests) }, enabled = !busy, modifier = Modifier.weight(1f)) { Text(tr("Zusage")) }
+        OutlinedButton(onClick = { onRespond("no", 0) }, enabled = !busy, modifier = Modifier.weight(1f)) { Text(tr("Absage")) }
     }
     if (mine != null) {
-        TextButton(onClick = { onRespond(null, 0) }, enabled = !busy) { Text("Rückmeldung zurücknehmen") }
+        TextButton(onClick = { onRespond(null, 0) }, enabled = !busy) { Text(tr("Rückmeldung zurücknehmen")) }
     }
 }

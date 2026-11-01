@@ -3,6 +3,7 @@ package de.hubiplan.app.ui
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.format.ResolverStyle
+import de.hubiplan.app.tr
 
 private val GERMAN_DATE = DateTimeFormatter.ofPattern("d.M.uuuu").withResolverStyle(ResolverStyle.STRICT)
 
@@ -15,21 +16,21 @@ fun parseGermanDate(text: String): String? {
 }
 
 /** Felder einer Änderungsmeldung bzw. der Stammdaten in Worten. */
-val FIELD_LABELS = mapOf(
-    "first_name" to "Vorname",
-    "last_name" to "Nachname",
-    "birth_date" to "Geburtsdatum",
-    "gender" to "Geschlecht",
-    "club_number" to "Mitgliedsnummer",
-    "email" to "E-Mail",
-    "phone" to "Telefon",
-    "street" to "Straße",
-    "postal_code" to "PLZ",
-    "city" to "Ort",
-    "country" to "Land",
+val FIELD_LABELS: Map<String, String> get() = mapOf(
+    "first_name" to tr("Vorname"),
+    "last_name" to tr("Nachname"),
+    "birth_date" to tr("Geburtsdatum"),
+    "gender" to tr("Geschlecht"),
+    "club_number" to tr("Mitgliedsnummer"),
+    "email" to tr("E-Mail"),
+    "phone" to tr("Telefon"),
+    "street" to tr("Straße"),
+    "postal_code" to tr("PLZ"),
+    "city" to tr("Ort"),
+    "country" to tr("Land"),
 )
 
-val GENDERS = listOf("" to "keine Angabe", "männlich" to "männlich", "weiblich" to "weiblich", "divers" to "divers")
+val GENDERS: List<Pair<String, String>> get() = listOf("" to tr("keine Angabe"), "männlich" to tr("männlich"), "weiblich" to tr("weiblich"), "divers" to tr("divers"))
 
 fun genderLabel(value: String): String = GENDERS.firstOrNull { it.first == value }?.second ?: value
 
@@ -124,7 +125,7 @@ fun sameInstant(a: String?, b: String?): Boolean {
     return if (x != null && y != null) x == y else a == b
 }
 
-val VISIBILITIES = listOf("members" to "Mitglieder", "board" to "nur Vorstand", "public" to "nach außen öffentlich")
+val VISIBILITIES: List<Pair<String, String>> get() = listOf("members" to tr("Mitglieder"), "board" to tr("nur Vorstand"), "public" to tr("nach außen öffentlich"))
 
 // --- B4: Kasse ---
 
@@ -152,9 +153,9 @@ fun amountInput(amount: String): String = amount.toBigDecimalOrNull()?.setScale(
 
 /** Prüft den bar kassierten Betrag gegen den offenen Rest; null = in Ordnung. */
 fun cashAmountError(input: String, outstanding: String): String? {
-    val value = parseAmount(input)?.toBigDecimal() ?: return "Bitte einen Betrag über 0 eingeben."
+    val value = parseAmount(input)?.toBigDecimal() ?: return tr("Bitte einen Betrag über 0 eingeben.")
     val open = outstanding.toBigDecimalOrNull() ?: return null
-    return if (value > open) "Offen sind nur noch ${formatMoney(outstanding)}." else null
+    return if (value > open) tr("Offen sind nur noch {x1}.", "x1" to formatMoney(outstanding)) else null
 }
 
 /** Dateiname der Quittung: nur Buchstaben, Ziffern und Bindestriche. */

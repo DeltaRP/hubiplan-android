@@ -54,6 +54,7 @@ import java.io.File
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.UUID
+import de.hubiplan.app.tr
 
 // Verwaltung in der App, Schritt B5: offene Rechnungen suchen, bar kassieren, Quittung teilen
 
@@ -93,13 +94,13 @@ fun BillingSection(client: AdminClient, errors: AdminErrors, reload: Int, onOpen
                 OutlinedTextField(
                     value = search,
                     onValueChange = { search = it },
-                    label = { Text("Name, Betreff oder Rechnungsnummer") },
+                    label = { Text(tr("Name, Betreff oder Rechnungsnummer")) },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
                 )
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    FilterChip(selected = openOnly, onClick = { openOnly = true }, label = { Text("Offen") })
-                    FilterChip(selected = !openOnly, onClick = { openOnly = false }, label = { Text("Alle") })
+                    FilterChip(selected = openOnly, onClick = { openOnly = true }, label = { Text(tr("Offen")) })
+                    FilterChip(selected = !openOnly, onClick = { openOnly = false }, label = { Text(tr("Alle")) })
                 }
                 error?.let { Text(it, color = MaterialTheme.colorScheme.error, modifier = Modifier.announce(urgent = true)) }
                 val list = rows
@@ -107,8 +108,8 @@ fun BillingSection(client: AdminClient, errors: AdminErrors, reload: Int, onOpen
                 if (list != null) {
                     Text(
                         when {
-                            list.isEmpty() && openOnly -> "Keine offenen Rechnungen gefunden."
-                            list.isEmpty() -> "Keine Rechnungen gefunden."
+                            list.isEmpty() && openOnly -> tr("Keine offenen Rechnungen gefunden.")
+                            list.isEmpty() -> tr("Keine Rechnungen gefunden.")
                             else -> "$count Rechnungen"
                         },
                         style = MaterialTheme.typography.bodySmall,
@@ -133,12 +134,12 @@ fun BillingSection(client: AdminClient, errors: AdminErrors, reload: Int, onOpen
                             error = errors.message(e)
                         }
                     }
-                }, modifier = Modifier.padding(8.dp)) { Text("Weitere laden") }
+                }, modifier = Modifier.padding(8.dp)) { Text(tr("Weitere laden")) }
             }
         }
         item {
             Text(
-                "Beitragsläufe, Mahnungen und SEPA im Browser.",
+                tr("Beitragsläufe, Mahnungen und SEPA im Browser."),
                 style = MaterialTheme.typography.bodySmall,
                 modifier = Modifier.padding(16.dp),
             )
@@ -158,7 +159,7 @@ private fun InvoiceRow(inv: InvoiceItem, onClick: () -> Unit) {
             Column(horizontalAlignment = Alignment.End) {
                 Text(formatMoney(if (open) inv.outstanding else inv.total), style = MaterialTheme.typography.titleSmall)
                 Text(
-                    if (open && inv.overdue) "überfällig" else inv.statusLabel,
+                    if (open && inv.overdue) tr("überfällig") else inv.statusLabel,
                     style = MaterialTheme.typography.bodySmall,
                     color = if (open && inv.overdue) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -197,7 +198,7 @@ fun InvoiceScreen(
             busy = true
             val bytes = client.cashReceipt(paymentId)
             if (bytes == null) {
-                error = "Die Quittung ließ sich nicht laden."
+                error = tr("Die Quittung ließ sich nicht laden.")
             } else {
                 val file = withContext(Dispatchers.IO) {
                     ReceiptCache.write(context, client.accountKey, receiptFileName(current.number, paymentId), bytes)
@@ -224,14 +225,14 @@ fun InvoiceScreen(
     }
 
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        TextButton(onClick = onBack) { Text("‹ Zurück") }
+        TextButton(onClick = onBack) { Text(tr("‹ Zurück")) }
         if (busy) LinearProgressIndicator(Modifier.fillMaxWidth())
         error?.let { Text(it, color = MaterialTheme.colorScheme.error, modifier = Modifier.announce(urgent = true)) }
         val d = inv ?: return@Column
         Text(d.payer, style = MaterialTheme.typography.headlineSmall, modifier = Modifier.asHeading())
         Text(listOfNotNull(d.number, d.subject.ifBlank { null }).joinToString(" · "))
         Text(
-            "vom ${formatPlainDate(d.date)} · fällig ${formatPlainDate(d.dueDate)} · ${d.statusLabel}",
+            tr("vom {x1} · fällig {x2} · {statusLabel}", "x1" to formatPlainDate(d.date), "x2" to formatPlainDate(d.dueDate), "statusLabel" to d.statusLabel),
             style = MaterialTheme.typography.bodySmall,
             color = if (d.overdue && d.status == "open") MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -246,7 +247,7 @@ fun InvoiceScreen(
             }
         }
         HorizontalDivider()
-        AmountRow("Gesamt", d.total)
+        AmountRow(tr("Gesamt"), d.total)
         if (d.paid.toBigDecimalOrNull()?.signum() == 1) AmountRow("bezahlt", d.paid)
         if (d.status == "open") AmountRow("offen", d.outstanding, bold = true)
 
@@ -254,10 +255,10 @@ fun InvoiceScreen(
         if (newPayment != null) {
             Card(Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("Bar kassiert und gebucht.", style = MaterialTheme.typography.titleSmall)
+                    Text(tr("Bar kassiert und gebucht."), style = MaterialTheme.typography.titleSmall)
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Button(onClick = { receipt(newPayment, share = true) }, enabled = !busy) { Text("Quittung teilen") }
-                        OutlinedButton(onClick = { receipt(newPayment, share = false) }, enabled = !busy) { Text("Ansehen") }
+                        Button(onClick = { receipt(newPayment, share = true) }, enabled = !busy) { Text(tr("Quittung teilen")) }
+                        OutlinedButton(onClick = { receipt(newPayment, share = false) }, enabled = !busy) { Text(tr("Ansehen")) }
                     }
                 }
             }
@@ -266,18 +267,18 @@ fun InvoiceScreen(
         if (canEdit && d.status == "open" && d.outstanding.toBigDecimalOrNull()?.signum() == 1) {
             Card(Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("Bar kassiert", style = MaterialTheme.typography.titleSmall)
+                    Text(tr("Bar kassiert"), style = MaterialTheme.typography.titleSmall)
                     val accounts = cashAccounts
                     when {
                         accounts == null -> LinearProgressIndicator(Modifier.fillMaxWidth())
-                        accounts.isEmpty() -> Text("Es gibt noch keine Barkasse. Bitte im Browser unter Kasse eine anlegen.")
+                        accounts.isEmpty() -> Text(tr("Es gibt noch keine Barkasse. Bitte im Browser unter Kasse eine anlegen."))
                         else -> {
                             val amountError = if (amount.isBlank()) null else cashAmountError(amount, d.outstanding)
                             val dateValue = parseGermanDate(date)
                             OutlinedTextField(
                                 value = amount,
                                 onValueChange = { amount = it },
-                                label = { Text("Betrag in €") },
+                                label = { Text(tr("Betrag in €")) },
                                 singleLine = true,
                                 isError = amountError != null,
                                 supportingText = if (amountError != null) {
@@ -291,7 +292,7 @@ fun InvoiceScreen(
                             OutlinedTextField(
                                 value = date,
                                 onValueChange = { date = it },
-                                label = { Text("Datum (TT.MM.JJJJ)") },
+                                label = { Text(tr("Datum (TT.MM.JJJJ)")) },
                                 singleLine = true,
                                 isError = dateValue == null,
                                 trailingIcon = { DatePickButton(date) { date = it } },
@@ -299,9 +300,9 @@ fun InvoiceScreen(
                                 modifier = Modifier.fillMaxWidth(),
                             )
                             if (accounts.size > 1) {
-                                ChoicePicker("Barkasse", accounts.map { it to it.name }, account, { it.name }) { account = it }
+                                ChoicePicker(tr("Barkasse"), accounts.map { it to it.name }, account, { it.name }) { account = it }
                             } else {
-                                Text("in die ${accounts.first().name}", style = MaterialTheme.typography.bodySmall)
+                                Text(tr("in die {x1}", "x1" to accounts.first().name), style = MaterialTheme.typography.bodySmall)
                             }
                             Button(
                                 enabled = !busy && amount.isNotBlank() && amountError == null && dateValue != null && account != null,
@@ -317,14 +318,14 @@ fun InvoiceScreen(
                                             amount = amountInput(r.value.invoice.outstanding)
                                             key = UUID.randomUUID().toString()
                                             error = null
-                                            onChanged("Barzahlung zu ${d.number ?: "der Rechnung"} gebucht", r.changeSet)
+                                            onChanged(tr("Barzahlung zu {x1} gebucht", "x1" to d.number ?: tr("der Rechnung")), r.changeSet)
                                         } catch (e: ApiException) {
-                                            error = if (e.status == 0) "Keine Verbindung. Bitte erneut versuchen; doppelt gebucht wird nicht." else errors.message(e)
+                                            error = if (e.status == 0) tr("Keine Verbindung. Bitte erneut versuchen; doppelt gebucht wird nicht.") else errors.message(e)
                                         }
                                         busy = false
                                     }
                                 },
-                            ) { Text("Bar kassiert buchen") }
+                            ) { Text(tr("Bar kassiert buchen")) }
                         }
                     }
                 }
@@ -332,16 +333,16 @@ fun InvoiceScreen(
         }
 
         if (d.payments.isNotEmpty()) {
-            Text("Zahlungen", style = MaterialTheme.typography.titleSmall, modifier = Modifier.asHeading())
+            Text(tr("Zahlungen"), style = MaterialTheme.typography.titleSmall, modifier = Modifier.asHeading())
             d.payments.forEach { p ->
                 ListItem(
                     headlineContent = { Text("${formatPlainDate(p.date)} · ${formatMoney(p.amount)}") },
                     supportingContent = { Text("${p.methodLabel} · ${p.accountName} · Buchung ${p.bookingNumber}") },
-                    trailingContent = { TextButton(onClick = { receipt(p.id, share = true) }, enabled = !busy) { Text("Quittung") } },
+                    trailingContent = { TextButton(onClick = { receipt(p.id, share = true) }, enabled = !busy) { Text(tr("Quittung")) } },
                 )
             }
         }
-        Text("Storno, Mahnungen und Zahlungen entfernen im Browser.", style = MaterialTheme.typography.bodySmall)
+        Text(tr("Storno, Mahnungen und Zahlungen entfernen im Browser."), style = MaterialTheme.typography.bodySmall)
     }
 }
 
@@ -365,9 +366,9 @@ internal fun openPdf(context: Context, file: File, share: Boolean): String? {
     intent.clipData = ClipData.newRawUri(file.name, uri)
     intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
     return try {
-        context.startActivity(if (share) Intent.createChooser(intent, "Quittung teilen") else intent)
+        context.startActivity(if (share) Intent.createChooser(intent, tr("Quittung teilen")) else intent)
         null
     } catch (e: ActivityNotFoundException) {
-        "Keine App zum Öffnen von PDF gefunden."
+        tr("Keine App zum Öffnen von PDF gefunden.")
     }
 }

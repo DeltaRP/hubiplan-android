@@ -36,6 +36,7 @@ import de.hubiplan.app.data.ApiException
 import de.hubiplan.app.data.DeptMemberDetail
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonPrimitive
+import de.hubiplan.app.tr
 
 // Verwaltung in der App, Schritt B4: Mitglied einer Untereinheit (Zugführung)
 
@@ -81,20 +82,20 @@ fun DeptMemberScreen(
         }
     }
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        TextButton(onClick = onBack) { Text("‹ Zurück") }
+        TextButton(onClick = onBack) { Text(tr("‹ Zurück")) }
         if (busy) LinearProgressIndicator(Modifier.fillMaxWidth())
         error?.let { Text(it, color = MaterialTheme.colorScheme.error, modifier = Modifier.announce(urgent = true)) }
         val d = detail ?: return@Column
         Text(d.name, style = MaterialTheme.typography.headlineSmall, modifier = Modifier.asHeading())
         Text(listOfNotNull(d.memberType, d.clubNumber.ifBlank { null }?.let { "Nr. $it" }).joinToString(" · "))
         if (d.departments.isNotEmpty()) Text(d.departments.joinToString(", "), style = MaterialTheme.typography.bodySmall)
-        d.birthDate?.let { Text("geboren ${formatPlainDate(it)}", style = MaterialTheme.typography.bodySmall) }
-        d.entryDate?.let { Text("eingetreten ${formatPlainDate(it)}", style = MaterialTheme.typography.bodySmall) }
+        d.birthDate?.let { Text(tr("geboren {date}", "date" to formatPlainDate(it)), style = MaterialTheme.typography.bodySmall) }
+        d.entryDate?.let { Text(tr("eingetreten {date}", "date" to formatPlainDate(it)), style = MaterialTheme.typography.bodySmall) }
         d.contact?.let { c ->
             if (c.phone.isNotBlank()) {
                 ListItem(
                     headlineContent = { Text(c.phone) },
-                    overlineContent = { Text("Telefon") },
+                    overlineContent = { Text(tr("Telefon")) },
                     modifier = Modifier.clickable { context.startActivity(Intent(Intent.ACTION_DIAL, Uri.parse("tel:${c.phone}"))) },
                 )
             }
@@ -109,15 +110,15 @@ fun DeptMemberScreen(
             if (address.isNotBlank()) {
                 ListItem(
                     headlineContent = { Text(address) },
-                    overlineContent = { Text("Anschrift") },
+                    overlineContent = { Text(tr("Anschrift")) },
                     modifier = Modifier.clickable {
                         context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("geo:0,0?q=" + Uri.encode(address))))
                     },
                 )
             }
         }
-        if (DEPT_MEMBERS_EDIT in permissions) OutlinedButton(onClick = { editing = true }) { Text("Kontaktdaten bearbeiten") }
-        Text("Mitgliedsart, Austritt und Beiträge regelt der Verein.", style = MaterialTheme.typography.bodySmall)
+        if (DEPT_MEMBERS_EDIT in permissions) OutlinedButton(onClick = { editing = true }) { Text(tr("Kontaktdaten bearbeiten")) }
+        Text(tr("Mitgliedsart, Austritt und Beiträge regelt der Verein."), style = MaterialTheme.typography.bodySmall)
     }
     val d = detail
     if (editing && d != null) {
@@ -134,7 +135,7 @@ fun DeptMemberScreen(
                     val r = client.deptUpdate(id, changes.mapValues { JsonPrimitive(it.value) })
                     detail = r.value
                     editing = false
-                    onChanged("Kontaktdaten von ${r.value.name} gespeichert", r.changeSet)
+                    onChanged(tr("Kontaktdaten von {name} gespeichert", "name" to r.value.name), r.changeSet)
                 } catch (e: ApiException) {
                     saveError = errors.message(e)
                 }
@@ -155,7 +156,7 @@ private fun ContactDialog(
     var values by remember { mutableStateOf(before) }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Kontaktdaten") },
+        title = { Text(tr("Kontaktdaten")) },
         text = {
             Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 saveError?.let { Text(it, color = MaterialTheme.colorScheme.error, modifier = Modifier.announce(urgent = true)) }
@@ -179,7 +180,7 @@ private fun ContactDialog(
                 }
             }
         },
-        confirmButton = { Button(enabled = !saving, onClick = { onSave(masterDataChanges(before, values) ?: emptyMap()) }) { Text("Speichern") } },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Abbrechen") } },
+        confirmButton = { Button(enabled = !saving, onClick = { onSave(masterDataChanges(before, values) ?: emptyMap()) }) { Text(tr("Speichern")) } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(tr("Abbrechen")) } },
     )
 }

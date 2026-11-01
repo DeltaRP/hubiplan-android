@@ -5,6 +5,7 @@ import java.time.LocalDate
 import java.time.OffsetDateTime
 import java.time.ZoneId
 import java.time.ZoneOffset
+import de.hubiplan.app.tr
 
 /** Ein Termin, so wie er in den Gerätekalender geschrieben wird. */
 data class CalendarEntry(
@@ -50,7 +51,7 @@ fun Occurrence.toCalendarEntry(unitTitle: String, reminderMinutes: Int?, zone: Z
         tz = zone.id
     }
     val prefix = when {
-        isCancelled -> "Abgesagt: "
+        isCancelled -> tr("Abgesagt: ")
         myResponse == "yes" -> "✓ "
         myResponse == "no" -> "✗ "
         else -> ""
@@ -61,13 +62,13 @@ fun Occurrence.toCalendarEntry(unitTitle: String, reminderMinutes: Int?, zone: Z
         if (rsvpEnabled) {
             add(
                 when (myResponse) {
-                    "yes" -> "Du hast zugesagt."
-                    "no" -> "Du hast abgesagt."
-                    else -> "Rückmeldung offen – Zu- oder Absage in der HUBIplan-App."
+                    "yes" -> tr("Du hast zugesagt.")
+                    "no" -> tr("Du hast abgesagt.")
+                    else -> tr("Rückmeldung offen – Zu- oder Absage in der HUBIplan-App.")
                 },
             )
         }
-        add("Aus HUBIplan ($unitTitle)")
+        add(tr("Aus HUBIplan ({unitTitle})", "unitTitle" to unitTitle))
     }
     return CalendarEntry(
         key = key,

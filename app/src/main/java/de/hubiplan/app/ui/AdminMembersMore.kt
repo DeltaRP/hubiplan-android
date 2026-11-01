@@ -53,6 +53,7 @@ import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.contentOrNull
+import de.hubiplan.app.tr
 
 const val BILLING_VIEW = "billing.view"
 const val BILLING_EDIT = "billing.edit"
@@ -117,10 +118,10 @@ fun AwardsSection(client: AdminClient, id: Int, canEdit: Boolean, errors: AdminE
         }
     }
 
-    SectionTitle("Ehrungen und Würden")
+    SectionTitle(tr("Ehrungen und Würden"))
     error?.let { Text(it, color = MaterialTheme.colorScheme.error, modifier = Modifier.announce(urgent = true)) }
     val list = awards
-    if (list != null && list.isEmpty()) Text("Keine.", style = MaterialTheme.typography.bodySmall)
+    if (list != null && list.isEmpty()) Text(tr("Keine."), style = MaterialTheme.typography.bodySmall)
     list?.forEach { award ->
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
             Column(Modifier.weight(1f)) {
@@ -130,10 +131,10 @@ fun AwardsSection(client: AdminClient, id: Int, canEdit: Boolean, errors: AdminE
                     style = MaterialTheme.typography.bodySmall,
                 )
             }
-            if (canEdit && award.validUntil == null) TextButton(onClick = { ending = award }) { Text("Beenden") }
+            if (canEdit && award.validUntil == null) TextButton(onClick = { ending = award }) { Text(tr("Beenden")) }
         }
     }
-    if (canEdit) OutlinedButton(onClick = { adding = true }, modifier = Modifier.fillMaxWidth()) { Text("Ehrung hinzufügen") }
+    if (canEdit) OutlinedButton(onClick = { adding = true }, modifier = Modifier.fillMaxWidth()) { Text(tr("Ehrung hinzufügen")) }
 
     if (adding) {
         AddAwardDialog(client, errors, saving, dialogError, onDismiss = { adding = false; dialogError = null }) { title, from, note ->
@@ -150,21 +151,21 @@ fun AwardsSection(client: AdminClient, id: Int, canEdit: Boolean, errors: AdminE
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     (problem ?: dialogError)?.let { Text(it, color = MaterialTheme.colorScheme.error, modifier = Modifier.announce(urgent = true)) }
                     if (saving) LinearProgressIndicator(Modifier.fillMaxWidth())
-                    DateInput("Endet am", until) { until = it }
+                    DateInput(tr("Endet am"), until) { until = it }
                 }
             },
             confirmButton = {
                 Button(enabled = !saving, onClick = {
                     val iso = parseGermanDate(until)
                     if (iso == null) {
-                        problem = "Bitte das Datum als TT.MM.JJJJ eingeben."
+                        problem = tr("Bitte das Datum als TT.MM.JJJJ eingeben.")
                     } else {
                         problem = null
                         change("„${award.titleName}“ beendet", onDone = { ending = null }) { client.endAward(id, award.id, iso) }
                     }
-                }) { Text("Beenden") }
+                }) { Text(tr("Beenden")) }
             },
-            dismissButton = { TextButton(onClick = { ending = null; dialogError = null }) { Text("Abbrechen") } },
+            dismissButton = { TextButton(onClick = { ending = null; dialogError = null }) { Text(tr("Abbrechen")) } },
         )
     }
 }
@@ -192,14 +193,14 @@ private fun AddAwardDialog(
     }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Ehrung hinzufügen") },
+        title = { Text(tr("Ehrung hinzufügen")) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 (error ?: saveError)?.let { Text(it, color = MaterialTheme.colorScheme.error, modifier = Modifier.announce(urgent = true)) }
                 if (saving) LinearProgressIndicator(Modifier.fillMaxWidth())
-                ChoicePicker("Ehrung", titles.map { it to it.name }, chosen, { it.name }) { chosen = it }
-                DateInput("Seit", from) { from = it }
-                OutlinedTextField(value = note, onValueChange = { note = it.take(200) }, label = { Text("Notiz (optional)") }, modifier = Modifier.fillMaxWidth())
+                ChoicePicker(tr("Ehrung"), titles.map { it to it.name }, chosen, { it.name }) { chosen = it }
+                DateInput(tr("Seit"), from) { from = it }
+                OutlinedTextField(value = note, onValueChange = { note = it.take(200) }, label = { Text(tr("Notiz (optional)")) }, modifier = Modifier.fillMaxWidth())
             }
         },
         confirmButton = {
@@ -207,13 +208,13 @@ private fun AddAwardDialog(
                 val iso = parseGermanDate(from)
                 val t = chosen
                 when {
-                    t == null -> error = "Bitte eine Ehrung wählen."
-                    iso == null -> error = "Bitte das Datum als TT.MM.JJJJ eingeben."
+                    t == null -> error = tr("Bitte eine Ehrung wählen.")
+                    iso == null -> error = tr("Bitte das Datum als TT.MM.JJJJ eingeben.")
                     else -> onSave(t, iso, note.trim())
                 }
-            }) { Text("Speichern") }
+            }) { Text(tr("Speichern")) }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Abbrechen") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(tr("Abbrechen")) } },
     )
 }
 
@@ -249,11 +250,11 @@ fun fieldChanges(entries: List<FieldEntry>, input: Map<Int, String>): Pair<Map<S
         if (text == fieldText(def, entry.value).trim()) continue
         out[def.id.toString()] = when {
             text.isEmpty() -> JsonNull
-            def.fieldType == "date" -> JsonPrimitive(parseGermanDate(text) ?: return out to "${def.label}: bitte als TT.MM.JJJJ eingeben.")
+            def.fieldType == "date" -> JsonPrimitive(parseGermanDate(text) ?: return out to tr("{label}: bitte als TT.MM.JJJJ eingeben.", "label" to def.label))
             def.fieldType == "bool" -> when (text) {
                 "ja" -> JsonPrimitive(true)
                 "nein" -> JsonPrimitive(false)
-                else -> return out to "${def.label}: bitte ja, nein oder – wählen."
+                else -> return out to tr("{label}: bitte ja, nein oder – wählen.", "label" to def.label)
             }
             def.fieldType == "number" -> JsonPrimitive(text.replace(",", "."))
             else -> JsonPrimitive(text)
@@ -284,26 +285,26 @@ fun FieldsButton(client: AdminClient, id: Int, canEdit: Boolean, errors: AdminEr
         }
     }
     loadError?.let {
-        SectionTitle("Zusatzfelder")
+        SectionTitle(tr("Zusatzfelder"))
         Text(it, color = MaterialTheme.colorScheme.error, modifier = Modifier.announce(urgent = true))
-        TextButton(onClick = { refresh++ }) { Text("Erneut versuchen") }
+        TextButton(onClick = { refresh++ }) { Text(tr("Erneut versuchen")) }
         return
     }
     val list = entries ?: return
     if (list.isEmpty()) return
-    SectionTitle("Zusatzfelder")
+    SectionTitle(tr("Zusatzfelder"))
     list.forEach { entry ->
-        val shown = if (entry.definition.repeatable) "(mehrere Einträge, im Browser)" else fieldText(entry.definition, entry.value).ifBlank { "–" }
+        val shown = if (entry.definition.repeatable) tr("(mehrere Einträge, im Browser)") else fieldText(entry.definition, entry.value).ifBlank { "–" }
         Text("${entry.definition.label}: $shown", style = MaterialTheme.typography.bodyMedium)
     }
     error?.let { Text(it, color = MaterialTheme.colorScheme.error, modifier = Modifier.announce(urgent = true)) }
-    if (canEdit) OutlinedButton(onClick = { open = true }, modifier = Modifier.fillMaxWidth()) { Text("Zusatzfelder bearbeiten") }
+    if (canEdit) OutlinedButton(onClick = { open = true }, modifier = Modifier.fillMaxWidth()) { Text(tr("Zusatzfelder bearbeiten")) }
     if (open) {
         var input by remember { mutableStateOf(list.associate { it.definition.id to fieldText(it.definition, it.value) }) }
         var problem by remember { mutableStateOf<String?>(null) }
         AlertDialog(
             onDismissRequest = { open = false },
-            title = { Text("Zusatzfelder") },
+            title = { Text(tr("Zusatzfelder")) },
             text = {
                 Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     problem?.let { Text(it, color = MaterialTheme.colorScheme.error, modifier = Modifier.announce(urgent = true)) }
@@ -357,7 +358,7 @@ fun FieldsButton(client: AdminClient, id: Int, canEdit: Boolean, errors: AdminEr
                                     val r = client.saveFields(id, changes)
                                     open = false
                                     refresh++
-                                    onChanged("Zusatzfelder gespeichert", r.changeSet)
+                                    onChanged(tr("Zusatzfelder gespeichert"), r.changeSet)
                                 } catch (e: ApiException) {
                                     problem = errors.message(e)
                                 }
@@ -365,9 +366,9 @@ fun FieldsButton(client: AdminClient, id: Int, canEdit: Boolean, errors: AdminEr
                             }
                         }
                     }
-                }) { Text("Speichern") }
+                }) { Text(tr("Speichern")) }
             },
-            dismissButton = { TextButton(onClick = { open = false }) { Text("Abbrechen") } },
+            dismissButton = { TextButton(onClick = { open = false }) { Text(tr("Abbrechen")) } },
         )
     }
 }
@@ -397,22 +398,22 @@ fun BankSection(client: AdminClient, d: MemberDetail, permissions: List<String>,
         }
     }
     val list = mandates ?: return
-    SectionTitle("Bankverbindung")
+    SectionTitle(tr("Bankverbindung"))
     error?.let { Text(it, color = MaterialTheme.colorScheme.error, modifier = Modifier.announce(urgent = true)) }
     val active = list.filter { it.status == "active" }
-    if (active.isEmpty()) Text("Kein gültiges SEPA-Mandat.", style = MaterialTheme.typography.bodySmall)
+    if (active.isEmpty()) Text(tr("Kein gültiges SEPA-Mandat."), style = MaterialTheme.typography.bodySmall)
     active.forEach { m ->
         Text("${m.holder}: ${if (full && m.iban != null) formatIban(m.iban) else m.ibanMasked}")
-        Text("Mandat ${m.reference}, unterschrieben ${formatPlainDate(m.signedOn)}", style = MaterialTheme.typography.bodySmall)
+        Text(tr("Mandat {reference}, unterschrieben {x1}", "reference" to m.reference, "x1" to formatPlainDate(m.signedOn)), style = MaterialTheme.typography.bodySmall)
     }
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         if (active.isNotEmpty() && !full) {
             TextButton(onClick = {
                 // Ganze IBAN nur nach erneuter Gerätesperre
                 DeviceUnlock.ask(context, "IBAN anzeigen", onSuccess = { full = true }, onError = { error = it })
-            }) { Text("IBAN ganz anzeigen") }
+            }) { Text(tr("IBAN ganz anzeigen")) }
         }
-        if (BILLING_EDIT in permissions) OutlinedButton(onClick = { editing = true }) { Text("Bankverbindung ändern") }
+        if (BILLING_EDIT in permissions) OutlinedButton(onClick = { editing = true }) { Text(tr("Bankverbindung ändern")) }
     }
     if (editing) {
         BankDialog(d, bankDraft, bankError, onDismiss = { editing = false; bankDraft = null; bankError = null }) { holder, iban, bic, signed ->
@@ -437,7 +438,7 @@ fun BankSection(client: AdminClient, d: MemberDetail, permissions: List<String>,
                     val r = client.addMandate(d.id, v[0], v[1], v[2], v[3])
                     bankDraft = null
                     refresh++
-                    onChanged("Bankverbindung geändert", r.changeSet)
+                    onChanged(tr("Bankverbindung geändert"), r.changeSet)
                 } catch (e: ApiException) {
                     // Eingaben nicht verlieren: Dialog mit ihnen und dem Fehler wieder öffnen
                     bankError = errors.message(e)
@@ -466,29 +467,29 @@ private fun BankDialog(
     var error by remember { mutableStateOf<String?>(null) }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Neue Bankverbindung") },
+        title = { Text(tr("Neue Bankverbindung")) },
         text = {
             Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("Neues SEPA-Mandat auf Papier (vom Mitglied unterschrieben).", style = MaterialTheme.typography.bodySmall)
+                Text(tr("Neues SEPA-Mandat auf Papier (vom Mitglied unterschrieben)."), style = MaterialTheme.typography.bodySmall)
                 (error ?: saveError)?.let { Text(it, color = MaterialTheme.colorScheme.error, modifier = Modifier.announce(urgent = true)) }
-                OutlinedTextField(value = holder, onValueChange = { holder = it.take(70) }, label = { Text("Kontoinhaber") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                OutlinedTextField(value = holder, onValueChange = { holder = it.take(70) }, label = { Text(tr("Kontoinhaber")) }, singleLine = true, modifier = Modifier.fillMaxWidth())
                 OutlinedTextField(value = iban, onValueChange = { iban = it.uppercase().take(42) }, label = { Text("IBAN") }, singleLine = true, modifier = Modifier.fillMaxWidth())
                 OutlinedTextField(value = bic, onValueChange = { bic = it.uppercase().take(14) }, label = { Text("BIC (optional)") }, singleLine = true, modifier = Modifier.fillMaxWidth())
-                DateInput("Unterschrieben am", signed) { signed = it }
+                DateInput(tr("Unterschrieben am"), signed) { signed = it }
             }
         },
         confirmButton = {
             Button(onClick = {
                 val iso = parseGermanDate(signed)
                 when {
-                    holder.isBlank() -> error = "Bitte den Kontoinhaber angeben."
-                    iban.replace(" ", "").length < 15 -> error = "Bitte eine vollständige IBAN angeben."
-                    iso == null -> error = "Bitte das Datum als TT.MM.JJJJ eingeben."
+                    holder.isBlank() -> error = tr("Bitte den Kontoinhaber angeben.")
+                    iban.replace(" ", "").length < 15 -> error = tr("Bitte eine vollständige IBAN angeben.")
+                    iso == null -> error = tr("Bitte das Datum als TT.MM.JJJJ eingeben.")
                     else -> onNext(holder.trim(), iban.replace(" ", ""), bic.trim(), iso)
                 }
-            }) { Text("Weiter") }
+            }) { Text(tr("Weiter")) }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Abbrechen") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(tr("Abbrechen")) } },
     )
 }
 
@@ -496,16 +497,16 @@ private fun BankDialog(
 fun ConfirmChangeDialog(preview: Preview, onDismiss: () -> Unit, onConfirm: () -> Unit) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(preview.title.ifBlank { "Änderung bestätigen" }) },
+        title = { Text(preview.title.ifBlank { tr("Änderung bestätigen") }) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                Text("Das passiert:", style = MaterialTheme.typography.labelLarge)
+                Text(tr("Das passiert:"), style = MaterialTheme.typography.labelLarge)
                 preview.consequences.forEach { Text("• $it") }
-                Text("Danach lässt sich die Änderung rückgängig machen.", style = MaterialTheme.typography.bodySmall)
+                Text(tr("Danach lässt sich die Änderung rückgängig machen."), style = MaterialTheme.typography.bodySmall)
             }
         },
-        confirmButton = { Button(onClick = onConfirm) { Text("Bestätigen") } },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Abbrechen") } },
+        confirmButton = { Button(onClick = onConfirm) { Text(tr("Bestätigen")) } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(tr("Abbrechen")) } },
     )
 }
 
@@ -518,9 +519,9 @@ fun <T> ChoicePicker(label: String, options: List<Pair<T, String>>, selected: T?
         androidx.compose.foundation.layout.Box {
             OutlinedButton(
                 onClick = { open = true },
-                modifier = Modifier.fillMaxWidth().dropdown(label, selected?.let(show) ?: "nichts gewählt", open),
+                modifier = Modifier.fillMaxWidth().dropdown(label, selected?.let(show) ?: tr("nichts gewählt"), open),
             ) {
-                Text((selected?.let(show) ?: "Bitte wählen") + " ▾")
+                Text((selected?.let(show) ?: tr("Bitte wählen")) + " ▾")
             }
             androidx.compose.material3.DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
                 options.forEach { (value, text) ->
@@ -551,13 +552,13 @@ fun ReentryDialog(client: AdminClient, d: MemberDetail, errors: AdminErrors, onD
     }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Wiedereintritt von ${d.name}") },
+        title = { Text(tr("Wiedereintritt von {name}", "name" to d.name)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("Neuer Zeitraum; frühere Zeiten und Nummern bleiben erhalten.", style = MaterialTheme.typography.bodySmall)
+                Text(tr("Neuer Zeitraum; frühere Zeiten und Nummern bleiben erhalten."), style = MaterialTheme.typography.bodySmall)
                 error?.let { Text(it, color = MaterialTheme.colorScheme.error, modifier = Modifier.announce(urgent = true)) }
-                ChoicePicker("Mitgliedsart", types.map { it to it.name }, chosen, { it.name }) { chosen = it }
-                DateInput("Eintritt am", from) { from = it }
+                ChoicePicker(tr("Mitgliedsart"), types.map { it to it.name }, chosen, { it.name }) { chosen = it }
+                DateInput(tr("Eintritt am"), from) { from = it }
             }
         },
         confirmButton = {
@@ -565,13 +566,13 @@ fun ReentryDialog(client: AdminClient, d: MemberDetail, errors: AdminErrors, onD
                 val iso = parseGermanDate(from)
                 val t = chosen
                 when {
-                    t == null -> error = "Bitte eine Mitgliedsart wählen."
-                    iso == null -> error = "Bitte das Datum als TT.MM.JJJJ eingeben."
+                    t == null -> error = tr("Bitte eine Mitgliedsart wählen.")
+                    iso == null -> error = tr("Bitte das Datum als TT.MM.JJJJ eingeben.")
                     else -> onNext(t, iso)
                 }
-            }) { Text("Weiter") }
+            }) { Text(tr("Weiter")) }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Abbrechen") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(tr("Abbrechen")) } },
     )
 }
 
@@ -636,15 +637,15 @@ fun AdmitScreen(client: AdminClient, errors: AdminErrors, onBack: () -> Unit, on
     }
 
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        TextButton(onClick = onBack) { Text("‹ Zurück") }
-        Text("Neues Mitglied", style = MaterialTheme.typography.headlineSmall, modifier = Modifier.asHeading())
+        TextButton(onClick = onBack) { Text(tr("‹ Zurück")) }
+        Text(tr("Neues Mitglied"), style = MaterialTheme.typography.headlineSmall, modifier = Modifier.asHeading())
         if (busy) LinearProgressIndicator(Modifier.fillMaxWidth())
         error?.let { Text(it, color = MaterialTheme.colorScheme.error, modifier = Modifier.announce(urgent = true)) }
         for (k in listOf("first_name", "last_name", "birth_date", "street", "postal_code", "city", "email", "phone")) {
             OutlinedTextField(
                 value = values[k] ?: "",
                 onValueChange = { values = values + (k to it) },
-                label = { Text(if (k == "birth_date") "Geburtsdatum (TT.MM.JJJJ)" else FIELD_LABELS[k] ?: k) },
+                label = { Text(if (k == "birth_date") tr("Geburtsdatum (TT.MM.JJJJ)") else FIELD_LABELS[k] ?: k) },
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(
                     keyboardType = when (k) {
@@ -657,20 +658,20 @@ fun AdmitScreen(client: AdminClient, errors: AdminErrors, onBack: () -> Unit, on
                 modifier = Modifier.fillMaxWidth(),
             )
         }
-        ChoicePicker("Geschlecht", GENDERS, values["gender"] ?: "", { genderLabel(it) }) { values = values + ("gender" to it) }
-        ChoicePicker("Mitgliedsart", types.map { it to it.name }, type, { it.name }) { type = it }
-        if (units.isNotEmpty()) ChoicePicker("Untereinheit (optional)", listOf<DepartmentItem?>(null).map { it to "keine" } + units.map { it to it.label }, unit, { it?.label ?: "keine" }) { unit = it }
-        DateInput("Eintritt am", values["entry_date"] ?: "") { values = values + ("entry_date" to it) }
+        ChoicePicker(tr("Geschlecht"), GENDERS, values["gender"] ?: "", { genderLabel(it) }) { values = values + ("gender" to it) }
+        ChoicePicker(tr("Mitgliedsart"), types.map { it to it.name }, type, { it.name }) { type = it }
+        if (units.isNotEmpty()) ChoicePicker(tr("Untereinheit (optional)"), listOf<DepartmentItem?>(null).map { it to "keine" } + units.map { it to it.label }, unit, { it?.label ?: "keine" }) { unit = it }
+        DateInput(tr("Eintritt am"), values["entry_date"] ?: "") { values = values + ("entry_date" to it) }
         Button(
             enabled = !busy,
             onClick = {
                 val birth = parseGermanDate(values["birth_date"] ?: "")
                 error = when {
-                    values["first_name"].isNullOrBlank() || values["last_name"].isNullOrBlank() -> "Bitte Vor- und Nachname angeben."
-                    birth == null -> "Bitte das Geburtsdatum als TT.MM.JJJJ eingeben."
-                    listOf("street", "postal_code", "city").any { values[it].isNullOrBlank() } -> "Bitte die vollständige Anschrift angeben."
-                    type == null -> "Bitte eine Mitgliedsart wählen."
-                    parseGermanDate(values["entry_date"] ?: "") == null -> "Bitte das Eintrittsdatum als TT.MM.JJJJ eingeben."
+                    values["first_name"].isNullOrBlank() || values["last_name"].isNullOrBlank() -> tr("Bitte Vor- und Nachname angeben.")
+                    birth == null -> tr("Bitte das Geburtsdatum als TT.MM.JJJJ eingeben.")
+                    listOf("street", "postal_code", "city").any { values[it].isNullOrBlank() } -> tr("Bitte die vollständige Anschrift angeben.")
+                    type == null -> tr("Bitte eine Mitgliedsart wählen.")
+                    parseGermanDate(values["entry_date"] ?: "") == null -> tr("Bitte das Eintrittsdatum als TT.MM.JJJJ eingeben.")
                     else -> null
                 }
                 if (error == null && birth != null) {
@@ -688,13 +689,13 @@ fun AdmitScreen(client: AdminClient, errors: AdminErrors, onBack: () -> Unit, on
                 }
             },
             modifier = Modifier.fillMaxWidth(),
-        ) { Text("Aufnehmen") }
+        ) { Text(tr("Aufnehmen")) }
     }
 
     duplicates?.let { found ->
         AlertDialog(
             onDismissRequest = { duplicates = null },
-            title = { Text("Gibt es die Person schon?") },
+            title = { Text(tr("Gibt es die Person schon?")) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     found.forEach { p ->
@@ -702,7 +703,7 @@ fun AdmitScreen(client: AdminClient, errors: AdminErrors, onBack: () -> Unit, on
                             Column(Modifier.weight(1f)) {
                                 Text("${p.firstName} ${p.lastName}")
                                 Text(
-                                    formatPlainDate(p.birthDate) + if (p.alreadyMemberHere) " · schon Mitglied hier" else "",
+                                    formatPlainDate(p.birthDate) + if (p.alreadyMemberHere) tr(" · schon Mitglied hier") else "",
                                     style = MaterialTheme.typography.bodySmall,
                                 )
                             }
@@ -710,7 +711,7 @@ fun AdmitScreen(client: AdminClient, errors: AdminErrors, onBack: () -> Unit, on
                                 TextButton(onClick = {
                                     duplicates = null
                                     admit(p.id)
-                                }) { Text("Diese") }
+                                }) { Text(tr("Diese")) }
                             }
                         }
                     }
@@ -720,9 +721,9 @@ fun AdmitScreen(client: AdminClient, errors: AdminErrors, onBack: () -> Unit, on
                 TextButton(onClick = {
                     duplicates = null
                     admit(null)
-                }) { Text("Neue Person anlegen") }
+                }) { Text(tr("Neue Person anlegen")) }
             },
-            dismissButton = { TextButton(onClick = { duplicates = null }) { Text("Abbrechen") } },
+            dismissButton = { TextButton(onClick = { duplicates = null }) { Text(tr("Abbrechen")) } },
         )
     }
 }

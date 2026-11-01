@@ -43,6 +43,8 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import de.hubiplan.app.tr
+import de.hubiplan.app.trn
 
 sealed interface Screen {
     data object Loading : Screen
@@ -159,10 +161,10 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
                 adminUsedAt = SystemClock.elapsedRealtime()
                 _admin.value = _admin.value.copy(token = token, error = null)
             } catch (e: AdminVault.LockedException) {
-                _admin.value = _admin.value.copy(error = "Bitte mit Fingerabdruck oder Geräte-PIN entsperren.")
+                _admin.value = _admin.value.copy(error = tr("Bitte mit Fingerabdruck oder Geräte-PIN entsperren."))
             } catch (e: AdminVault.GoneException) {
                 store.setSealedAdminToken(null)
-                _admin.value = _admin.value.copy(sealed = false, error = "Bitte die Verwaltung neu freischalten.")
+                _admin.value = _admin.value.copy(sealed = false, error = tr("Bitte die Verwaltung neu freischalten."))
             }
         }
     }
@@ -190,7 +192,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
                     runCatching { Api(main.account.server, main.account.token).lockAdmin() }
                     _admin.value = _admin.value.copy(
                         busy = false,
-                        error = "Für die Verwaltung braucht das Telefon eine Bildschirmsperre (PIN, Muster oder Fingerabdruck).",
+                        error = tr("Für die Verwaltung braucht das Telefon eine Bildschirmsperre (PIN, Muster oder Fingerabdruck)."),
                     )
                     return@launch
                 }
@@ -261,7 +263,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     fun useAdmin() {
         if (_admin.value.token == null || adminIdle()) {
             _admin.value = _admin.value.copy(token = null)
-            throw ApiException(ADMIN_IDLE, "Die Verwaltung wurde nach 5 Minuten Pause gesperrt. Bitte neu entsperren.")
+            throw ApiException(ADMIN_IDLE, tr("Die Verwaltung wurde nach 5 Minuten Pause gesperrt. Bitte neu entsperren."))
         }
     }
 
@@ -285,6 +287,32 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     /** Darf dieses Konto Kurzmitteilungen senden (Vorstand, Zugführung)? */
+    // Wählbare Sprachen (vom zuerst verbundenen Konto, Fachfrage F6); leer: keine Auswahl
+    private val _languages = MutableStateFlow<List<de.hubiplan.app.data.LanguageOption>>(emptyList())
+    val languages: StateFlow<List<de.hubiplan.app.data.LanguageOption>> = _languages
+
+    /** Sprache des zuerst verbundenen Kontos lesen und übernehmen. */
+    private suspend fun syncLanguage() {
+        val first = accounts.allStores().firstNotNullOfOrNull { it.account.first() } ?: return
+        val state = runCatching { Api(first.server, first.token).language() }.getOrNull() ?: return
+        _languages.value = state.languages
+        de.hubiplan.app.Texte.kontoSprache(context, state.language)
+        // Namen der Benachrichtigungskanäle in der neuen Sprache
+        de.hubiplan.app.sync.Notifications.createChannels(context)
+    }
+
+    /** Sprache im Konto ändern (gilt auch im Browser) und sofort anzeigen. */
+    fun setLanguage(code: String) {
+        viewModelScope.launch {
+            val first = accounts.allStores().firstNotNullOfOrNull { it.account.first() } ?: return@launch
+            val state = runCatching { Api(first.server, first.token).setLanguage(code) }.getOrNull()
+            de.hubiplan.app.Texte.kontoSprache(context, state?.language ?: code)
+            // Namen der Benachrichtigungskanäle in der neuen Sprache
+            de.hubiplan.app.sync.Notifications.createChannels(context)
+            state?.let { _languages.value = it.languages }
+        }
+    }
+
     private val _canSend = MutableStateFlow(false)
     val canSend: StateFlow<Boolean> = _canSend
 
@@ -475,6 +503,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
             access?.let { showLogo(account, it) }
             SyncWorker.schedule(context)
             SyncWorker.now(context)
+            syncLanguage()
             for (s in accounts.allStores()) runCatching { PushSetup.refresh(context, s) }
             val canSend = runCatching { Api(account.server, account.token).senders().senders.isNotEmpty() }.getOrDefault(false)
             if (!current()) return
@@ -589,7 +618,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         val link = PairingLink.parse(text)
         if (link == null) {
             _connect.value = _connect.value.copy(
-                error = "Das ist kein QR-Code von HUBIplan. Bitte den Code unter „Mein Konto › App auf dem Telefon“ scannen.",
+                error = tr("Das ist kein QR-Code von HUBIplan. Bitte den Code unter „Mein Konto › App auf dem Telefon“ scannen."),
             )
             return
         }
@@ -610,7 +639,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     fun login(serverInput: String, email: String, password: String) {
         val server = normalizeServer(serverInput)
         if (server == null) {
-            _connect.value = _connect.value.copy(error = "Bitte die Adresse von HUBIplan angeben, z. B. verein.example.de.")
+            _connect.value = _connect.value.copy(error = tr("Bitte die Adresse von HUBIplan angeben, z. B. verein.example.de."))
             return
         }
         _connect.value = _connect.value.copy(server = server)
@@ -631,7 +660,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         run(state.server) { api, key ->
             when (val step = api.secondFactor(session, code.trim())) {
                 is LoginStep.Done -> api.createDevice(step.sessionToken, deviceName, appVersion, key())
-                is LoginStep.NeedsCode -> throw ApiException(400, "Der Code stimmt nicht. Bitte erneut versuchen.")
+                is LoginStep.NeedsCode -> throw ApiException(400, tr("Der Code stimmt nicht. Bitte erneut versuchen."))
             }
         }
     }
@@ -657,9 +686,9 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
             try {
                 val api = Api(server)
                 val instance = api.instance()
-                if (instance.product != "HUBIplan") throw ApiException(0, "Unter dieser Adresse läuft kein HUBIplan.")
+                if (instance.product != "HUBIplan") throw ApiException(0, tr("Unter dieser Adresse läuft kein HUBIplan."))
                 if (instance.minAppVersion > BuildConfig.VERSION_CODE) {
-                    throw ApiException(0, "Bitte die App aktualisieren, diese Version wird von HUBIplan nicht mehr unterstützt.")
+                    throw ApiException(0, tr("Bitte die App aktualisieren, diese Version wird von HUBIplan nicht mehr unterstützt."))
                 }
                 val paired = action(api, key)
                 if (paired == null && created) DeviceKeys.delete(alias)
@@ -713,7 +742,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     suspend fun sendPendingBeforeLogout(): String? {
         val current = store.currentAccount() ?: return null
         val api = adminApi()
-            ?: return "Die Verwaltung ist gesperrt. Bitte unter „Verwaltung“ entsperren und dann noch einmal abmelden."
+            ?: return tr("Die Verwaltung ist gesperrt. Bitte unter „Verwaltung“ entsperren und dann noch einmal abmelden.")
         val key = LocalAccountData.key(current.server, current.deviceId)
         val units = _admin.value.overview?.allUnits.orEmpty()
         return withContext(Dispatchers.IO) {
@@ -727,13 +756,12 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
                     sendDrafts(client, drafts)
                     sendReceipts(client, receipts)
                 } catch (e: ApiException) {
-                    return@withContext e.message ?: "Senden ist fehlgeschlagen."
+                    return@withContext e.message ?: tr("Senden ist fehlgeschlagen.")
                 }
             }
             val left = runCatching { drafts.count() + receipts.count() }.getOrDefault(0)
             if (left > 0) {
-                (if (left == 1) "1 Vorgang konnte" else "$left Vorgänge konnten") +
-                    " nicht gesendet werden (z. B. ohne Verbindung oder mit Fehler). Bitte unter Verwaltung › Kasse prüfen."
+                trn("1 Vorgang konnte nicht gesendet werden (z. B. ohne Verbindung oder mit Fehler). Bitte unter Verwaltung › Kasse prüfen.", "{n} Vorgänge konnten nicht gesendet werden (z. B. ohne Verbindung oder mit Fehler). Bitte unter Verwaltung › Kasse prüfen.", left)
             } else {
                 null
             }

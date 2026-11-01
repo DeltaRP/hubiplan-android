@@ -68,6 +68,7 @@ import de.hubiplan.app.data.CardCheck
 import de.hubiplan.app.data.DraftStore
 import de.hubiplan.app.data.ReceiptStore
 import kotlinx.coroutines.launch
+import de.hubiplan.app.tr
 
 /**
  * Reiter „Verwaltung“ (Schritt A8): nur für Konten mit Verwaltungsrechten. Erst nach dem
@@ -103,12 +104,11 @@ fun AdminPane(main: Screen.Main, vm: AppViewModel) {
     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
         when {
             !overview.twoFactor -> Notice(
-                "Für die Verwaltung in der App ist die Zwei-Faktor-Anmeldung nötig. Bitte im Browser unter " +
-                    "„Mein Konto › Anmeldung & Sicherheit“ einrichten, danach hier freischalten.",
-                "Mein Konto öffnen",
+                tr("Für die Verwaltung in der App ist die Zwei-Faktor-Anmeldung nötig. Bitte im Browser unter „Mein Konto › Anmeldung & Sicherheit“ einrichten, danach hier freischalten."),
+                tr("Mein Konto öffnen"),
             ) { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("${main.account.server}/mein-konto/anmeldung"))) }
             !DeviceUnlock.available(context) -> Notice(
-                "Für die Verwaltung braucht das Telefon eine Bildschirmsperre (PIN, Muster oder Fingerabdruck).",
+                tr("Für die Verwaltung braucht das Telefon eine Bildschirmsperre (PIN, Muster oder Fingerabdruck)."),
                 null,
             ) {}
             !state.sealed -> UnlockForm(state, vm)
@@ -116,14 +116,14 @@ fun AdminPane(main: Screen.Main, vm: AppViewModel) {
                 Modifier.widthIn(max = 520.dp).padding(24.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                Text("Verwaltung", style = MaterialTheme.typography.headlineSmall, modifier = Modifier.asHeading())
-                Text("Zum Öffnen mit Fingerabdruck, Gesicht oder Geräte-PIN entsperren.")
+                Text(tr("Verwaltung"), style = MaterialTheme.typography.headlineSmall, modifier = Modifier.asHeading())
+                Text(tr("Zum Öffnen mit Fingerabdruck, Gesicht oder Geräte-PIN entsperren."))
                 state.error?.let { Text(it, color = MaterialTheme.colorScheme.error, modifier = Modifier.announce(urgent = true)) }
                 Button(onClick = {
-                    DeviceUnlock.ask(context, "Verwaltung öffnen", onSuccess = vm::openAdmin, onError = {})
-                }) { Text("Entsperren") }
+                    DeviceUnlock.ask(context, tr("Verwaltung öffnen"), onSuccess = vm::openAdmin, onError = {})
+                }) { Text(tr("Entsperren")) }
                 LaunchedEffect(Unit) {
-                    DeviceUnlock.ask(context, "Verwaltung öffnen", onSuccess = vm::openAdmin, onError = {})
+                    DeviceUnlock.ask(context, tr("Verwaltung öffnen"), onSuccess = vm::openAdmin, onError = {})
                 }
             }
             else -> AdminHome(overview.allUnits, overview.until, main, vm)
@@ -134,7 +134,7 @@ fun AdminPane(main: Screen.Main, vm: AppViewModel) {
 @Composable
 private fun Notice(text: String, action: String?, onAction: () -> Unit) {
     Column(Modifier.widthIn(max = 520.dp).padding(24.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        Text("Verwaltung", style = MaterialTheme.typography.headlineSmall, modifier = Modifier.asHeading())
+        Text(tr("Verwaltung"), style = MaterialTheme.typography.headlineSmall, modifier = Modifier.asHeading())
         Text(text)
         action?.let { OutlinedButton(onClick = onAction) { Text(it) } }
     }
@@ -150,10 +150,9 @@ private fun UnlockForm(state: AdminState, vm: AppViewModel) {
         Modifier.widthIn(max = 520.dp).fillMaxWidth().verticalScroll(rememberScrollState()).padding(24.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Text("Verwaltung freischalten", style = MaterialTheme.typography.headlineSmall, modifier = Modifier.asHeading())
+        Text(tr("Verwaltung freischalten"), style = MaterialTheme.typography.headlineSmall, modifier = Modifier.asHeading())
         Text(
-            "Für Mitglieder, Termine und Kasse in der App bitte mit Passwort und Zwei-Faktor-Code bestätigen. " +
-                "Die Freischaltung gilt 30 Tage auf diesem Telefon; geöffnet wird jedes Mal mit Fingerabdruck oder PIN.",
+            tr("Für Mitglieder, Termine und Kasse in der App bitte mit Passwort und Zwei-Faktor-Code bestätigen. Die Freischaltung gilt 30 Tage auf diesem Telefon; geöffnet wird jedes Mal mit Fingerabdruck oder PIN."),
             style = MaterialTheme.typography.bodySmall,
         )
         if (state.busy) LinearProgressIndicator(Modifier.fillMaxWidth())
@@ -161,7 +160,7 @@ private fun UnlockForm(state: AdminState, vm: AppViewModel) {
         OutlinedTextField(
             value = password,
             onValueChange = { password = it },
-            label = { Text("Passwort") },
+            label = { Text(tr("Passwort")) },
             singleLine = true,
             visualTransformation = PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
@@ -170,7 +169,7 @@ private fun UnlockForm(state: AdminState, vm: AppViewModel) {
         OutlinedTextField(
             value = code,
             onValueChange = { code = it.filter(Char::isDigit).take(8) },
-            label = { Text("Code aus der Authenticator-App") },
+            label = { Text(tr("Code aus der Authenticator-App")) },
             singleLine = true,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
             modifier = Modifier.fillMaxWidth(),
@@ -181,24 +180,24 @@ private fun UnlockForm(state: AdminState, vm: AppViewModel) {
                 // Erst das Telefon entsperren: Der Tresor für den Schlüssel braucht es
                 DeviceUnlock.ask(
                     context,
-                    "Verwaltung freischalten",
+                    tr("Verwaltung freischalten"),
                     onSuccess = { vm.unlockAdmin(password, code) },
                     onError = { error = it },
                 )
             },
             enabled = !state.busy && password.isNotEmpty() && code.length >= 6,
             modifier = Modifier.fillMaxWidth(),
-        ) { Text("Freischalten") }
+        ) { Text(tr("Freischalten")) }
     }
 }
 
 private enum class Section(val label: String) {
-    TASKS("Aufgaben"),
-    MEMBERS("Mitglieder"),
-    EVENTS("Termine"),
-    FINANCE("Kasse"),
-    BILLING("Beiträge"),
-    OCCASIONS("Anlässe"),
+    TASKS(tr("Aufgaben")),
+    MEMBERS(tr("Mitglieder")),
+    EVENTS(tr("Termine")),
+    FINANCE(tr("Kasse")),
+    BILLING(tr("Beiträge")),
+    OCCASIONS(tr("Anlässe")),
 }
 
 /** Bereiche je nach Rechten; Untereinheiten (Zugführung) haben Mitglieder und Termine. */
@@ -261,7 +260,7 @@ private fun AdminHome(units: List<AdminUnit>, until: String?, main: Screen.Main,
         scope.launch {
             val result = snackbar.showSnackbar(
                 text,
-                actionLabel = if (changeSet != null) "Rückgängig" else null,
+                actionLabel = if (changeSet != null) tr("Rückgängig") else null,
                 withDismissAction = true,
                 duration = SnackbarDuration.Long,
             )
@@ -269,7 +268,7 @@ private fun AdminHome(units: List<AdminUnit>, until: String?, main: Screen.Main,
                 try {
                     client.undo(changeSet)
                     reload++
-                    snackbar.showSnackbar("Rückgängig gemacht")
+                    snackbar.showSnackbar(tr("Rückgängig gemacht"))
                 } catch (e: ApiException) {
                     snackbar.showSnackbar(errors.message(e))
                 }
@@ -308,10 +307,10 @@ private fun AdminHome(units: List<AdminUnit>, until: String?, main: Screen.Main,
     leaveForm?.let { leave ->
         AlertDialog(
             onDismissRequest = { leaveForm = null },
-            title = { Text("Eingaben verwerfen?") },
-            text = { Text("Was du in diesem Formular eingegeben hast, geht verloren.") },
-            confirmButton = { TextButton(onClick = { leaveForm = null; leave() }) { Text("Verwerfen") } },
-            dismissButton = { TextButton(onClick = { leaveForm = null }) { Text("Weiter bearbeiten") } },
+            title = { Text(tr("Eingaben verwerfen?")) },
+            text = { Text(tr("Was du in diesem Formular eingegeben hast, geht verloren.")) },
+            confirmButton = { TextButton(onClick = { leaveForm = null; leave() }) { Text(tr("Verwerfen")) } },
+            dismissButton = { TextButton(onClick = { leaveForm = null }) { Text(tr("Weiter bearbeiten")) } },
         )
     }
 
@@ -331,11 +330,11 @@ private fun AdminHome(units: List<AdminUnit>, until: String?, main: Screen.Main,
                         scanner.launch(
                             ScanOptions()
                                 .setDesiredBarcodeFormats(ScanOptions.QR_CODE)
-                                .setPrompt("Mitgliedsausweis scannen")
+                                .setPrompt(tr("Mitgliedsausweis scannen"))
                                 .setBeepEnabled(false)
                                 .setOrientationLocked(false),
                         )
-                    }) { Text("Ausweis prüfen") }
+                    }) { Text(tr("Ausweis prüfen")) }
                 }
             }
             HorizontalDivider()
@@ -472,17 +471,17 @@ private fun TaskList(
             list == null && error == null -> Loading()
             // Fehler ohne Liste ist nicht „keine Aufgaben“ (UX-Audit 31.10. A07)
             list == null -> Column(Modifier.padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                TextButton(onClick = { reload++ }) { Text("Erneut laden") }
+                TextButton(onClick = { reload++ }) { Text(tr("Erneut laden")) }
                 Footer(until, vm) { reload++ }
             }
             list.isEmpty() -> Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("Keine offenen Aufgaben.")
+                Text(tr("Keine offenen Aufgaben."))
                 Footer(until, vm) { reload++ }
             }
             else -> LazyColumn(Modifier.fillMaxSize()) {
                 item {
                     Text(
-                        "Offene Aufgaben",
+                        tr("Offene Aufgaben"),
                         style = MaterialTheme.typography.titleMedium,
                         modifier = Modifier.asHeading().padding(start = 16.dp, top = 12.dp, end = 16.dp),
                     )
@@ -505,9 +504,9 @@ private fun TaskList(
 @Composable
 private fun Footer(until: String?, vm: AppViewModel, onReload: () -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        TextButton(onClick = onReload) { Text("Aktualisieren") }
-        until?.let { Text("Freigeschaltet bis ${formatDate(it)}", style = MaterialTheme.typography.bodySmall) }
-        TextButton(onClick = vm::lockAdmin) { Text("Verwaltung auf diesem Telefon sperren") }
+        TextButton(onClick = onReload) { Text(tr("Aktualisieren")) }
+        until?.let { Text(tr("Freigeschaltet bis {x1}", "x1" to formatDate(it)), style = MaterialTheme.typography.bodySmall) }
+        TextButton(onClick = vm::lockAdmin) { Text(tr("Verwaltung auf diesem Telefon sperren")) }
     }
 }
 
@@ -517,10 +516,10 @@ private fun UnitPicker(units: List<AdminUnit>, current: AdminUnit, onPick: (Admi
     Box(Modifier.padding(horizontal = 8.dp)) {
         // Welche Einheit verwaltet wird, steht ausdrücklich da (UX-Audit 31.10. A04)
         if (units.size == 1) {
-            Text("Verwaltung · ${current.name}", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(8.dp))
+            Text(tr("Verwaltung · {name}", "name" to current.name), style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(8.dp))
         } else {
-            TextButton(onClick = { open = true }, modifier = Modifier.dropdown("Verwaltete Einheit", current.name, open)) {
-                Text("Verwaltung · ${current.name} ▾", style = MaterialTheme.typography.titleMedium)
+            TextButton(onClick = { open = true }, modifier = Modifier.dropdown(tr("Verwaltete Einheit"), current.name, open)) {
+                Text(tr("Verwaltung · {name} ▾", "name" to current.name), style = MaterialTheme.typography.titleMedium)
             }
             DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
                 units.forEach { u ->

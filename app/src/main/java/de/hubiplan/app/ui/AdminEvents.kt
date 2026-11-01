@@ -49,6 +49,7 @@ import de.hubiplan.app.data.obj
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import kotlinx.coroutines.launch
+import de.hubiplan.app.tr
 
 // Verwaltung in der App, Schritt B3: Termine der Einheit und Rückmeldungen
 
@@ -89,12 +90,12 @@ fun EventsSection(
                     Modifier.fillMaxWidth().padding(start = 16.dp, end = 8.dp, top = 8.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Text("Kommende Termine", style = MaterialTheme.typography.titleMedium, modifier = Modifier.asHeading().weight(1f))
-                    TextButton(onClick = { refresh++ }) { Text("Aktualisieren") }
-                    if (list.canManage) Button(onClick = { onCreate(list.rsvpAllowed) }) { Text("Neuer Termin") }
+                    Text(tr("Kommende Termine"), style = MaterialTheme.typography.titleMedium, modifier = Modifier.asHeading().weight(1f))
+                    TextButton(onClick = { refresh++ }) { Text(tr("Aktualisieren")) }
+                    if (list.canManage) Button(onClick = { onCreate(list.rsvpAllowed) }) { Text(tr("Neuer Termin")) }
                 }
             }
-            if (list.items.isEmpty()) item { Text("Keine Termine im nächsten halben Jahr.", Modifier.padding(16.dp)) }
+            if (list.items.isEmpty()) item { Text(tr("Keine Termine im nächsten halben Jahr."), Modifier.padding(16.dp)) }
             items(list.items, key = { it.key.ifBlank { "${it.eventId}-${it.startsAt}" } }) { o ->
                 ListItem(
                     overlineContent = { Text(formatWhen(o.startsAt, o.endsAt, o.allDay)) },
@@ -105,7 +106,7 @@ fun EventsSection(
                                 o.location.ifBlank { null },
                                 o.owner.ifBlank { null },
                                 if (o.rsvpEnabled) "Zu-/Absagen" else null,
-                                if (o.isSeries) "Serie" else null,
+                                if (o.isSeries) tr("Serie") else null,
                             ).joinToString(" · "),
                         )
                     },
@@ -174,7 +175,7 @@ fun EventScreen(
     }
 
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        TextButton(onClick = onBack) { Text("‹ Zurück") }
+        TextButton(onClick = onBack) { Text(tr("‹ Zurück")) }
         if (busy) LinearProgressIndicator(Modifier.fillMaxWidth())
         error?.let { Text(it, color = MaterialTheme.colorScheme.error, modifier = Modifier.announce(urgent = true)) }
         val e = event ?: return@Column
@@ -197,14 +198,14 @@ fun EventScreen(
         )
         if (cancelled) {
             val note = if (single != null) exception?.note.orEmpty() else e.cancelNote
-            Text("Abgesagt" + if (note.isNotBlank()) ": $note" else "", color = MaterialTheme.colorScheme.error)
+            Text(tr("Abgesagt") + if (note.isNotBlank()) ": $note" else "", color = MaterialTheme.colorScheme.error)
         }
         if (e.description.isNotBlank()) Text(e.description)
         if (e.canEdit) {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 if (!cancelled) {
                     OutlinedButton(onClick = { dialog = EventDialog.Cancel }, enabled = !busy) {
-                        Text(if (single != null) "Diesen Termin absagen" else "Absagen")
+                        Text(if (single != null) tr("Diesen Termin absagen") else tr("Absagen"))
                     }
                 } else {
                     OutlinedButton(enabled = !busy, onClick = {
@@ -214,9 +215,9 @@ fun EventScreen(
                             } else {
                                 client.cancelEvent(id, cancelled = false, note = "", notify = false)
                             }
-                            "Absage zurückgenommen" to r.changeSet
+                            tr("Absage zurückgenommen") to r.changeSet
                         }
-                    }) { Text("Absage zurücknehmen") }
+                    }) { Text(tr("Absage zurücknehmen")) }
                 }
             }
         }
@@ -226,12 +227,12 @@ fun EventScreen(
         if (rsvp.enabled || responses != null) {
             Card(Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Text("Zu- und Absagen", style = MaterialTheme.typography.titleSmall, modifier = Modifier.asHeading())
+                    Text(tr("Zu- und Absagen"), style = MaterialTheme.typography.titleSmall, modifier = Modifier.asHeading())
                     val s = responses?.summary ?: rsvp.summary
                     s?.let { Text(responseSummary(it.yes, it.no, it.persons, it.open)) }
-                    rsvp.capacity?.let { cap -> Text("Höchstens $cap Personen" + (rsvp.free?.let { ", noch $it frei" } ?: "")) }
-                    rsvp.deadline?.let { Text("Anmeldeschluss ${formatDate(it)}", style = MaterialTheme.typography.bodySmall) }
-                    if (e.isSeries) Text("Bei Serien gelten Rückmeldungen für die ganze Serie.", style = MaterialTheme.typography.bodySmall)
+                    rsvp.capacity?.let { cap -> Text(tr("Höchstens {cap} Personen", "cap" to cap) + (rsvp.free?.let { tr(", noch {it} frei", "it" to it) } ?: "")) }
+                    rsvp.deadline?.let { Text(tr("Anmeldeschluss {x1}", "x1" to formatDate(it)), style = MaterialTheme.typography.bodySmall) }
+                    if (e.isSeries) Text(tr("Bei Serien gelten Rückmeldungen für die ganze Serie."), style = MaterialTheme.typography.bodySmall)
                 }
             }
         }
@@ -268,12 +269,12 @@ fun EventScreen(
                 saveError = dialogError,
                 onDismiss = { dialog = null; dialogError = null },
                 onRemove = {
-                    change(inDialog = true) { "Rückmeldung von ${d.name} entfernt" to client.deleteResponse(id, d.membership).changeSet }
+                    change(inDialog = true) { tr("Rückmeldung von {name} entfernt", "name" to d.name) to client.deleteResponse(id, d.membership).changeSet }
                 },
             ) { status, guests, note ->
                 change(inDialog = true) {
-                    val word = if (status == "yes") "Zusage" else "Absage"
-                    "$word für ${d.name} eingetragen" to client.setResponse(id, d.membership, status, guests, note).changeSet
+                    val word = if (status == "yes") tr("Zusage") else tr("Absage")
+                    tr("{word} für {name} eingetragen", "word" to word, "name" to d.name) to client.setResponse(id, d.membership, status, guests, note).changeSet
                 }
             }
         }
@@ -287,7 +288,7 @@ private fun shiftEnd(start: String, end: String, occurrence: String): String = r
     java.time.OffsetDateTime.parse(occurrence).plus(java.time.Duration.between(s, e)).toString()
 }.getOrDefault(occurrence)
 
-private enum class ListTab(val label: String) { YES("Zusagen"), NO("Absagen"), OPEN("Offen") }
+private enum class ListTab(val label: String) { YES(tr("Zusagen")), NO(tr("Absagen")), OPEN(tr("Offen")) }
 
 @Composable
 private fun ResponseLists(r: AdminResponses, canEnter: Boolean, onPick: (EventDialog.Respond) -> Unit) {
@@ -306,13 +307,13 @@ private fun ResponseLists(r: AdminResponses, canEnter: Boolean, onPick: (EventDi
     OutlinedTextField(
         value = search,
         onValueChange = { search = it },
-        label = { Text("Name suchen") },
+        label = { Text(tr("Name suchen")) },
         singleLine = true,
         modifier = Modifier.fillMaxWidth(),
     )
     val q = search.trim().lowercase()
     fun hit(name: String) = q.isEmpty() || name.lowercase().contains(q)
-    if (canEnter) Text("Antippen, um für ein Mitglied einzutragen (z. B. nach einem Anruf).", style = MaterialTheme.typography.bodySmall)
+    if (canEnter) Text(tr("Antippen, um für ein Mitglied einzutragen (z. B. nach einem Anruf)."), style = MaterialTheme.typography.bodySmall)
     when (tab) {
         ListTab.OPEN -> r.open.filter { hit(it.name) }.forEach { o ->
             ListItem(
@@ -330,7 +331,7 @@ private fun ResponseLists(r: AdminResponses, canEnter: Boolean, onPick: (EventDi
                         listOfNotNull(
                             row.departments.ifBlank { null },
                             row.note.ifBlank { null },
-                            if (row.source == "board") "vom Vorstand eingetragen" else null,
+                            if (row.source == "board") tr("vom Vorstand eingetragen") else null,
                         ).joinToString(" · "),
                     )
                 },
@@ -351,26 +352,26 @@ private fun CancelDialog(series: Boolean, saving: Boolean, saveError: String?, o
     var notify by remember { mutableStateOf(true) }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(if (series) "Diesen Termin absagen?" else "Termin absagen?") },
+        title = { Text(if (series) tr("Diesen Termin absagen?") else tr("Termin absagen?")) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 saveError?.let { Text(it, color = MaterialTheme.colorScheme.error, modifier = Modifier.announce(urgent = true)) }
                 if (saving) LinearProgressIndicator(Modifier.fillMaxWidth())
                 Text(
                     if (series) {
-                        "Nur dieser Termin der Serie wird abgesagt; die übrigen bleiben."
+                        tr("Nur dieser Termin der Serie wird abgesagt; die übrigen bleiben.")
                     } else {
-                        "Der Termin bleibt im Kalender, als abgesagt gekennzeichnet. Rückmeldungen bleiben erhalten."
+                        tr("Der Termin bleibt im Kalender, als abgesagt gekennzeichnet. Rückmeldungen bleiben erhalten.")
                     },
                 )
-                OutlinedTextField(value = note, onValueChange = { note = it.take(300) }, label = { Text("Hinweis (optional)") }, modifier = Modifier.fillMaxWidth())
+                OutlinedTextField(value = note, onValueChange = { note = it.take(300) }, label = { Text(tr("Hinweis (optional)")) }, modifier = Modifier.fillMaxWidth())
                 if (!series) {
-                    LabeledSwitch("Eingeladene per E-Mail informieren", notify, { notify = it })
+                    LabeledSwitch(tr("Eingeladene per E-Mail informieren"), notify, { notify = it })
                 }
             }
         },
-        confirmButton = { Button(enabled = !saving, onClick = { onConfirm(note.trim(), notify && !series) }) { Text("Absagen") } },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Abbrechen") } },
+        confirmButton = { Button(enabled = !saving, onClick = { onConfirm(note.trim(), notify && !series) }) { Text(tr("Absagen")) } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(tr("Abbrechen")) } },
     )
 }
 
@@ -396,33 +397,33 @@ private fun RespondDialog(
                 saveError?.let { Text(it, color = MaterialTheme.colorScheme.error, modifier = Modifier.announce(urgent = true)) }
                 if (saving) LinearProgressIndicator(Modifier.fillMaxWidth())
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    FilterChip(selected = status == "yes", onClick = { status = "yes" }, label = { Text("Zusage") })
-                    FilterChip(selected = status == "no", onClick = { status = "no" }, label = { Text("Absage") })
+                    FilterChip(selected = status == "yes", onClick = { status = "yes" }, label = { Text(tr("Zusage")) })
+                    FilterChip(selected = status == "no", onClick = { status = "no" }, label = { Text(tr("Absage")) })
                 }
                 if (guestsAllowed && status == "yes") {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text("Begleitung", Modifier.weight(1f))
+                        Text(tr("Begleitung"), Modifier.weight(1f))
                         TextButton(
                             onClick = { guests = (guests - 1).coerceAtLeast(0) },
                             enabled = guests > 0,
-                            modifier = Modifier.semantics { contentDescription = "Begleitperson entfernen" },
+                            modifier = Modifier.semantics { contentDescription = tr("Begleitperson entfernen") },
                         ) { Text("−") }
                         Text("$guests")
                         TextButton(
                             onClick = { guests = (guests + 1).coerceAtMost(maxGuests) },
                             enabled = guests < maxGuests,
-                            modifier = Modifier.semantics { contentDescription = "Begleitperson hinzufügen" },
+                            modifier = Modifier.semantics { contentDescription = tr("Begleitperson hinzufügen") },
                         ) { Text("+") }
                     }
                 }
-                OutlinedTextField(value = note, onValueChange = { note = it.take(200) }, label = { Text("Notiz (optional)") }, modifier = Modifier.fillMaxWidth())
-                if (d.status != null) TextButton(onClick = onRemove, enabled = !saving) { Text("Rückmeldung entfernen") }
+                OutlinedTextField(value = note, onValueChange = { note = it.take(200) }, label = { Text(tr("Notiz (optional)")) }, modifier = Modifier.fillMaxWidth())
+                if (d.status != null) TextButton(onClick = onRemove, enabled = !saving) { Text(tr("Rückmeldung entfernen")) }
             }
         },
         confirmButton = {
-            Button(enabled = !saving, onClick = { onSave(status, if (status == "yes" && guestsAllowed) guests else 0, note.trim()) }) { Text("Eintragen") }
+            Button(enabled = !saving, onClick = { onSave(status, if (status == "yes" && guestsAllowed) guests else 0, note.trim()) }) { Text(tr("Eintragen")) }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Abbrechen") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(tr("Abbrechen")) } },
     )
 }
 
@@ -454,29 +455,29 @@ fun EventCreateScreen(client: AdminClient, errors: AdminErrors, rsvpAllowed: Boo
     val canRsvp = rsvpAllowed && visibility != "board"
 
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        TextButton(onClick = onBack) { Text("‹ Zurück") }
-        Text("Neuer Termin", style = MaterialTheme.typography.headlineSmall, modifier = Modifier.asHeading())
-        Text("Einmaliger Termin. Serien, Anhänge und Weitergabe an andere Einheiten im Browser.", style = MaterialTheme.typography.bodySmall)
+        TextButton(onClick = onBack) { Text(tr("‹ Zurück")) }
+        Text(tr("Neuer Termin"), style = MaterialTheme.typography.headlineSmall, modifier = Modifier.asHeading())
+        Text(tr("Einmaliger Termin. Serien, Anhänge und Weitergabe an andere Einheiten im Browser."), style = MaterialTheme.typography.bodySmall)
         if (busy) LinearProgressIndicator(Modifier.fillMaxWidth())
         error?.let { Text(it, color = MaterialTheme.colorScheme.error, modifier = Modifier.announce(urgent = true)) }
-        OutlinedTextField(value = title, onValueChange = { title = it.take(200) }, label = { Text("Titel") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+        OutlinedTextField(value = title, onValueChange = { title = it.take(200) }, label = { Text(tr("Titel")) }, singleLine = true, modifier = Modifier.fillMaxWidth())
         OutlinedTextField(
             value = date,
             onValueChange = { date = it },
-            label = { Text("Tag (TT.MM.JJJJ)") },
+            label = { Text(tr("Tag (TT.MM.JJJJ)")) },
             singleLine = true,
             isError = date.isNotBlank() && parseGermanDate(date) == null,
             trailingIcon = { DatePickButton(date) { date = it } },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             modifier = Modifier.fillMaxWidth(),
         )
-        LabeledSwitch("Ganztägig", allDay, { allDay = it })
+        LabeledSwitch(tr("Ganztägig"), allDay, { allDay = it })
         if (!allDay) {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedTextField(
                     value = start,
                     onValueChange = { start = it },
-                    label = { Text("Beginn (HH:MM)") },
+                    label = { Text(tr("Beginn (HH:MM)")) },
                     singleLine = true,
                     isError = start.isNotBlank() && parseTime(start) == null,
                     trailingIcon = { TimePickButton(start) { start = it } },
@@ -485,7 +486,7 @@ fun EventCreateScreen(client: AdminClient, errors: AdminErrors, rsvpAllowed: Boo
                 OutlinedTextField(
                     value = end,
                     onValueChange = { end = it },
-                    label = { Text("Ende (optional)") },
+                    label = { Text(tr("Ende (optional)")) },
                     singleLine = true,
                     isError = end.isNotBlank() && parseTime(end) == null,
                     trailingIcon = { TimePickButton(end.ifBlank { start }) { end = it } },
@@ -493,25 +494,25 @@ fun EventCreateScreen(client: AdminClient, errors: AdminErrors, rsvpAllowed: Boo
                 )
             }
         }
-        if (times == null) Text("Bitte Tag als TT.MM.JJJJ und Zeit als HH:MM eingeben.", color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall, modifier = Modifier.announce(urgent = true))
-        OutlinedTextField(value = location, onValueChange = { location = it.take(200) }, label = { Text("Ort (optional)") }, singleLine = true, modifier = Modifier.fillMaxWidth())
-        OutlinedTextField(value = description, onValueChange = { description = it }, label = { Text("Beschreibung (optional)") }, minLines = 2, modifier = Modifier.fillMaxWidth())
-        ChoicePicker("Wer sieht den Termin?", VISIBILITIES, visibility, { v -> VISIBILITIES.first { it.first == v }.second }) { visibility = it }
+        if (times == null) Text(tr("Bitte Tag als TT.MM.JJJJ und Zeit als HH:MM eingeben."), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall, modifier = Modifier.announce(urgent = true))
+        OutlinedTextField(value = location, onValueChange = { location = it.take(200) }, label = { Text(tr("Ort (optional)")) }, singleLine = true, modifier = Modifier.fillMaxWidth())
+        OutlinedTextField(value = description, onValueChange = { description = it }, label = { Text(tr("Beschreibung (optional)")) }, minLines = 2, modifier = Modifier.fillMaxWidth())
+        ChoicePicker(tr("Wer sieht den Termin?"), VISIBILITIES, visibility, { v -> VISIBILITIES.first { it.first == v }.second }) { visibility = it }
         if (canRsvp) {
-            LabeledSwitch("Zu- und Absagen", rsvp, { rsvp = it })
+            LabeledSwitch(tr("Zu- und Absagen"), rsvp, { rsvp = it })
             if (rsvp) {
-                LabeledSwitch("Begleitung erlaubt", guests, { guests = it })
+                LabeledSwitch(tr("Begleitung erlaubt"), guests, { guests = it })
                 OutlinedTextField(
                     value = deadline,
                     onValueChange = { deadline = it },
-                    label = { Text("Anmeldeschluss (optional, TT.MM.JJJJ)") },
+                    label = { Text(tr("Anmeldeschluss (optional, TT.MM.JJJJ)")) },
                     singleLine = true,
                     isError = !deadlineOk,
                     trailingIcon = { DatePickButton(deadline.ifBlank { date }) { deadline = it } },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     modifier = Modifier.fillMaxWidth(),
                 )
-                LabeledSwitch("Eingeladene per E-Mail einladen", notify, { notify = it })
+                LabeledSwitch(tr("Eingeladene per E-Mail einladen"), notify, { notify = it })
             }
         }
         Button(
@@ -546,6 +547,6 @@ fun EventCreateScreen(client: AdminClient, errors: AdminErrors, rsvpAllowed: Boo
                     busy = false
                 }
             },
-        ) { Text("Anlegen") }
+        ) { Text(tr("Anlegen")) }
     }
 }

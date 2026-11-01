@@ -19,6 +19,7 @@ import de.hubiplan.app.data.MyGrant
 import de.hubiplan.app.data.MyPlacing
 import de.hubiplan.app.data.MyResults
 import de.hubiplan.app.data.PortalAccess
+import de.hubiplan.app.tr
 
 /**
  * „Meine Ergebnisse“ im Profil (Wettbewerbe Schritt 5): eigene Starts mit Platz und Wert,
@@ -39,21 +40,21 @@ fun MyResultsSection(access: PortalAccess, vm: AppViewModel) {
             if (e.status == 401) vm.deviceRevoked(e.message) else error = e.message
         }
     }
-    Text("Meine Ergebnisse", style = MaterialTheme.typography.titleMedium, modifier = Modifier.asHeading())
+    Text(tr("Meine Ergebnisse"), style = MaterialTheme.typography.titleMedium, modifier = Modifier.asHeading())
     val d = data
     if (d == null) {
         error?.let {
             Text(it, color = MaterialTheme.colorScheme.error)
-            TextButton(onClick = { attempt++ }) { Text("Erneut laden") }
+            TextButton(onClick = { attempt++ }) { Text(tr("Erneut laden")) }
         }
         return
     }
     if (d.starts.isEmpty() && d.grants.isEmpty()) {
-        Text("Noch keine Ergebnisse.", style = MaterialTheme.typography.bodySmall)
+        Text(tr("Noch keine Ergebnisse."), style = MaterialTheme.typography.bodySmall)
         return
     }
     if (d.grants.isNotEmpty()) {
-        Text("Titel und Auszeichnungen", style = MaterialTheme.typography.titleSmall, modifier = Modifier.asHeading())
+        Text(tr("Titel und Auszeichnungen"), style = MaterialTheme.typography.titleSmall, modifier = Modifier.asHeading())
         d.grants.forEach { Text(grantLine(it)) }
     }
     val shown = if (all) d.starts else d.starts.take(SHORT_LIST)
@@ -68,7 +69,7 @@ fun MyResultsSection(access: PortalAccess, vm: AppViewModel) {
         }
     }
     if (!all && d.starts.size > SHORT_LIST) {
-        TextButton(onClick = { all = true }) { Text("Alle ${d.starts.size} Wettbewerbe zeigen") }
+        TextButton(onClick = { all = true }) { Text(tr("Alle {size} Wettbewerbe zeigen", "size" to d.starts.size)) }
     }
 }
 
@@ -76,9 +77,9 @@ private const val SHORT_LIST = 5
 
 /** „Einzel: 2. Platz von 14 · 28 Ringe“; ohne Platz nur der Wert. */
 fun placingLine(p: MyPlacing): String {
-    val place = p.place?.let { n -> "$n. Platz" + (p.field?.let { " von $it" } ?: "") }
+    val place = p.place?.let { n -> "$n. Platz" + (p.field?.let { tr(" von {it}", "it" to it) } ?: "") }
     val parts = listOfNotNull(place, p.valueText.ifBlank { null })
-    return "${p.scoring}: " + parts.ifEmpty { listOf("ohne Wertung") }.joinToString(" · ")
+    return "${p.scoring}: " + parts.ifEmpty { listOf(tr("ohne Wertung")) }.joinToString(" · ")
 }
 
 /** „Vereinsmeister 2027“; ein Preis ohne Jahr im Titel bekommt das Jahr dazu. */

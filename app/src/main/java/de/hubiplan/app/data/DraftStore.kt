@@ -9,6 +9,7 @@ import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
 import javax.crypto.spec.GCMParameterSpec
+import de.hubiplan.app.tr
 
 /**
  * Buchungsentwürfe der Kasse (Schritt B4), solange sie nicht gesendet sind: die einzige
@@ -91,7 +92,7 @@ internal object DraftCrypto {
 
     /** Alte Datei (gemeinsamer Schlüssel) lesen; nur beim Übernehmen. */
     fun openLegacy(data: ByteArray): ByteArray {
-        if (store().getKey(LEGACY_ALIAS, null) == null) throw IllegalStateException("kein alter Schlüssel")
+        if (store().getKey(LEGACY_ALIAS, null) == null) throw IllegalStateException(tr("kein alter Schlüssel"))
         return open(LEGACY_ALIAS, data)
     }
 

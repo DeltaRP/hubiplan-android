@@ -55,6 +55,7 @@ import java.io.File
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import de.hubiplan.app.tr
 
 /** Eigene Daten: ansehen, Änderung melden, Foto aufnehmen (wartet auf Freigabe). */
 @Composable
@@ -102,7 +103,7 @@ fun ProfilePane(access: PortalAccess, main: Screen.Main, vm: AppViewModel) {
     fun load(uri: Uri) {
         scope.launch {
             draft = withContext(Dispatchers.IO) { runCatching { PhotoPrep.load(context, uri) }.getOrNull() }
-            if (draft == null) error = "Das Bild ließ sich nicht öffnen."
+            if (draft == null) error = tr("Das Bild ließ sich nicht öffnen.")
             cameraFile?.delete()
             cameraFile = null
         }
@@ -118,7 +119,7 @@ fun ProfilePane(access: PortalAccess, main: Screen.Main, vm: AppViewModel) {
         takePicture.launch(FileProvider.getUriForFile(context, "${context.packageName}.dateien", file))
     }
     val cameraPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { ok ->
-        if (ok) startCamera() else error = "Ohne Zugriff auf die Kamera bitte ein Bild aus der Galerie wählen."
+        if (ok) startCamera() else error = tr("Ohne Zugriff auf die Kamera bitte ein Bild aus der Galerie wählen.")
     }
     val pickImage = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
         if (uri != null) load(uri)
@@ -135,35 +136,35 @@ fun ProfilePane(access: PortalAccess, main: Screen.Main, vm: AppViewModel) {
         HorizontalDivider()
         val p = profile
         if (p == null) {
-            if (error == null) Loading() else TextButton(onClick = { attempt++ }) { Text("Erneut laden") }
+            if (error == null) Loading() else TextButton(onClick = { attempt++ }) { Text(tr("Erneut laden")) }
             return@Column
         }
         Text("${p.firstName} ${p.lastName}", style = MaterialTheme.typography.headlineSmall, modifier = Modifier.asHeading())
         val facts = buildList {
             p.memberType?.let { add(it) }
             if (p.departments.isNotEmpty()) add(p.departments.joinToString(", "))
-            p.entryDate?.let { add("Mitglied seit ${formatPlainDate(it)}") }
-            if (p.clubNumber.isNotBlank()) add("Nr. ${p.clubNumber}")
+            p.entryDate?.let { add(tr("Mitglied seit {x1}", "x1" to formatPlainDate(it))) }
+            if (p.clubNumber.isNotBlank()) add(tr("Nr. {number}", "number" to p.clubNumber))
         }
         if (facts.isNotEmpty()) Text(facts.joinToString(" · "), style = MaterialTheme.typography.bodyMedium)
 
         // --- Foto ---
-        Text("Foto", style = MaterialTheme.typography.titleMedium, modifier = Modifier.asHeading())
+        Text(tr("Foto"), style = MaterialTheme.typography.titleMedium, modifier = Modifier.asHeading())
         val state = photo
         Row(horizontalArrangement = Arrangement.spacedBy(16.dp), verticalAlignment = Alignment.CenterVertically) {
             image?.let {
                 Image(
                     it.asImageBitmap(),
-                    contentDescription = "Dein Foto",
+                    contentDescription = tr("Dein Foto"),
                     contentScale = ContentScale.Crop,
                     modifier = Modifier.width(105.dp).height(135.dp),
                 )
             }
             Text(
                 when {
-                    state?.pending != null -> "Neues Foto wartet auf Freigabe durch den Vorstand."
-                    state?.approved != null -> "Dieses Foto steht in deinem Mitgliedsausweis."
-                    else -> "Noch kein Foto. Es erscheint nach der Freigabe im Mitgliedsausweis."
+                    state?.pending != null -> tr("Neues Foto wartet auf Freigabe durch den Vorstand.")
+                    state?.approved != null -> tr("Dieses Foto steht in deinem Mitgliedsausweis.")
+                    else -> tr("Noch kein Foto. Es erscheint nach der Freigabe im Mitgliedsausweis.")
                 },
                 style = MaterialTheme.typography.bodySmall,
                 modifier = Modifier.weight(1f),
@@ -177,19 +178,19 @@ fun ProfilePane(access: PortalAccess, main: Screen.Main, vm: AppViewModel) {
                 } else {
                     cameraPermission.launch(Manifest.permission.CAMERA)
                 }
-            }) { Text("Foto aufnehmen") }
+            }) { Text(tr("Foto aufnehmen")) }
             OutlinedButton(onClick = {
                 error = null
                 pickImage.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
-            }) { Text("Aus der Galerie") }
+            }) { Text(tr("Aus der Galerie")) }
         }
         if (state?.consentAt != null || state?.approved != null || state?.pending != null) {
-            TextButton(onClick = { confirmDelete = true }) { Text("Einwilligung widerrufen und Foto löschen") }
+            TextButton(onClick = { confirmDelete = true }) { Text(tr("Einwilligung widerrufen und Foto löschen")) }
         }
 
         HorizontalDivider()
         // --- Kontaktdaten ---
-        Text("Kontakt", style = MaterialTheme.typography.titleMedium, modifier = Modifier.asHeading())
+        Text(tr("Kontakt"), style = MaterialTheme.typography.titleMedium, modifier = Modifier.asHeading())
         val c = p.contact
         if (c != null) {
             listOf(c.street, "${c.postalCode} ${c.city}".trim(), c.country, c.email, c.phone)
@@ -197,10 +198,10 @@ fun ProfilePane(access: PortalAccess, main: Screen.Main, vm: AppViewModel) {
                 .forEach { Text(it) }
         }
         p.changeRequests.firstOrNull { it.status == "pending" }?.let {
-            Text("Deine Änderung wartet auf Bestätigung durch den Vorstand.", style = MaterialTheme.typography.bodySmall)
+            Text(tr("Deine Änderung wartet auf Bestätigung durch den Vorstand."), style = MaterialTheme.typography.bodySmall)
         }
         if (!editing) {
-            OutlinedButton(onClick = { editing = true }) { Text("Änderung melden") }
+            OutlinedButton(onClick = { editing = true }) { Text(tr("Änderung melden")) }
         } else {
             ChangeForm(
                 p,
@@ -215,9 +216,9 @@ fun ProfilePane(access: PortalAccess, main: Screen.Main, vm: AppViewModel) {
                         try {
                             val waits = api.reportChange(access.id, values, message)
                             notice = if (waits) {
-                                "Danke! Der Vorstand prüft die Änderung, du bekommst Bescheid."
+                                tr("Danke! Der Vorstand prüft die Änderung, du bekommst Bescheid.")
                             } else {
-                                "Gespeichert."
+                                tr("Gespeichert.")
                             }
                             editing = false
                             reload++
@@ -253,7 +254,7 @@ fun ProfilePane(access: PortalAccess, main: Screen.Main, vm: AppViewModel) {
                     try {
                         val bytes = withContext(Dispatchers.Default) { PhotoPrep.jpeg(bitmap) }
                         photo = api.uploadPhoto(access.id, bytes)
-                        notice = "Foto gesendet. Es erscheint, sobald der Vorstand es freigibt."
+                        notice = tr("Foto gesendet. Es erscheint, sobald der Vorstand es freigibt.")
                         draft = null
                         reload++
                     } catch (e: ApiException) {
@@ -275,8 +276,8 @@ fun ProfilePane(access: PortalAccess, main: Screen.Main, vm: AppViewModel) {
     if (confirmDelete) {
         AlertDialog(
             onDismissRequest = { confirmDelete = false },
-            title = { Text("Foto löschen?") },
-            text = { Text("Deine Einwilligung wird widerrufen und alle deine Fotos werden gelöscht, auch im Mitgliedsausweis.") },
+            title = { Text(tr("Foto löschen?")) },
+            text = { Text(tr("Deine Einwilligung wird widerrufen und alle deine Fotos werden gelöscht, auch im Mitgliedsausweis.")) },
             confirmButton = {
                 TextButton(onClick = {
                     confirmDelete = false
@@ -285,14 +286,14 @@ fun ProfilePane(access: PortalAccess, main: Screen.Main, vm: AppViewModel) {
                         try {
                             photo = api.deletePhoto(access.id)
                             image = null
-                            notice = "Foto gelöscht und Einwilligung widerrufen."
+                            notice = tr("Foto gelöscht und Einwilligung widerrufen.")
                         } catch (e: ApiException) {
                             fail(e)
                         }
                     }
-                }) { Text("Löschen") }
+                }) { Text(tr("Löschen")) }
             },
-            dismissButton = { TextButton(onClick = { confirmDelete = false }) { Text("Abbrechen") } },
+            dismissButton = { TextButton(onClick = { confirmDelete = false }) { Text(tr("Abbrechen")) } },
         )
     }
 }
@@ -310,21 +311,20 @@ private fun PhotoUploadDialog(
     var consent by remember { mutableStateOf(false) }
     AlertDialog(
         onDismissRequest = onCancel,
-        title = { Text("Foto senden") },
+        title = { Text(tr("Foto senden")) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                error?.let { Text("Nicht gesendet: $it", color = MaterialTheme.colorScheme.error, modifier = Modifier.announce(urgent = true)) }
+                error?.let { Text(tr("Nicht gesendet: {it}", "it" to it), color = MaterialTheme.colorScheme.error, modifier = Modifier.announce(urgent = true)) }
                 if (sending) LinearProgressIndicator(Modifier.fillMaxWidth())
                 Image(
                     bitmap.asImageBitmap(),
-                    contentDescription = "Vorschau",
+                    contentDescription = tr("Vorschau"),
                     contentScale = ContentScale.Fit,
                     modifier = Modifier.fillMaxWidth().height(220.dp),
                 )
-                TextButton(onClick = onRotate, enabled = !sending) { Text("Drehen") }
+                TextButton(onClick = onRotate, enabled = !sending) { Text(tr("Drehen")) }
                 LabeledCheckbox(
-                    "Ich willige ein, dass $organization dieses Foto für meinen Mitgliedsausweis und die " +
-                        "Mitgliederverwaltung verwendet. Ich kann die Einwilligung jederzeit widerrufen.",
+                    tr("Ich willige ein, dass {organization} dieses Foto für meinen Mitgliedsausweis und die Mitgliederverwaltung verwendet. Ich kann die Einwilligung jederzeit widerrufen.", "organization" to organization),
                     consent,
                     { consent = it },
                     style = MaterialTheme.typography.bodySmall,
@@ -333,10 +333,10 @@ private fun PhotoUploadDialog(
         },
         confirmButton = {
             Button(onClick = onUpload, enabled = consent && !sending) {
-                Text(if (sending) "Wird gesendet …" else if (error != null) "Erneut senden" else "Senden")
+                Text(if (sending) tr("Wird gesendet …") else if (error != null) tr("Erneut senden") else tr("Senden"))
             }
         },
-        dismissButton = { TextButton(onClick = onCancel) { Text("Abbrechen") } },
+        dismissButton = { TextButton(onClick = onCancel) { Text(tr("Abbrechen")) } },
     )
 }
 
@@ -353,11 +353,11 @@ private fun ChangeForm(profile: Profile, sending: Boolean, onCancel: () -> Unit,
     )
     val labels = listOf(
         "email" to "E-Mail",
-        "phone" to "Telefon",
-        "street" to "Straße und Hausnummer",
+        "phone" to tr("Telefon"),
+        "street" to tr("Straße und Hausnummer"),
         "postal_code" to "PLZ",
-        "city" to "Ort",
-        "last_name" to "Nachname",
+        "city" to tr("Ort"),
+        "last_name" to tr("Nachname"),
     )
     // Eingaben überstehen Drehen und Reiterwechsel nicht mit remember allein (UX-Audit 31.10. A02)
     var values by rememberSaveable { mutableStateOf(start) }
@@ -375,15 +375,15 @@ private fun ChangeForm(profile: Profile, sending: Boolean, onCancel: () -> Unit,
         OutlinedTextField(
             value = message,
             onValueChange = { message = it.take(500) },
-            label = { Text("Nachricht an den Vorstand (freiwillig)") },
+            label = { Text(tr("Nachricht an den Vorstand (freiwillig)")) },
             modifier = Modifier.fillMaxWidth(),
         )
         val changed = changedFields(start, values)
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Button(onClick = { onSend(changed, message) }, enabled = changed.isNotEmpty() && !sending) {
-                Text(if (sending) "Wird gesendet …" else "Senden")
+                Text(if (sending) tr("Wird gesendet …") else tr("Senden"))
             }
-            TextButton(onClick = onCancel) { Text("Abbrechen") }
+            TextButton(onClick = onCancel) { Text(tr("Abbrechen")) }
         }
     }
 }

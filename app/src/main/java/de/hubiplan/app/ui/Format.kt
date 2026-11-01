@@ -4,10 +4,22 @@ import java.time.OffsetDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+import de.hubiplan.app.Texte
+import de.hubiplan.app.tr
 
-private val DAY = DateTimeFormatter.ofPattern("EE, d. MMMM yyyy", Locale.GERMAN)
-private val SHORT_DAY = DateTimeFormatter.ofPattern("EE, d.M.", Locale.GERMAN)
+// Formate je Sprache der App (Englisch britisch, Konzept F4); als Getter, damit ein
+// Sprachwechsel sofort gilt
+private val english: Boolean get() = Texte.sprache == "en"
+private val DAY: DateTimeFormatter
+    get() = if (english) {
+        DateTimeFormatter.ofPattern("EEE d MMMM yyyy", Locale.UK)
+    } else {
+        DateTimeFormatter.ofPattern("EE, d. MMMM yyyy", Locale.GERMAN)
+    }
+private val SHORT_DAY: DateTimeFormatter
+    get() = if (english) DateTimeFormatter.ofPattern("EEE d/M", Locale.UK) else DateTimeFormatter.ofPattern("EE, d.M.", Locale.GERMAN)
 private val TIME = DateTimeFormatter.ofPattern("HH:mm", Locale.GERMAN)
+private val UHR: String get() = if (english) "" else " Uhr"
 
 private fun local(iso: String, zone: ZoneId): java.time.ZonedDateTime =
     OffsetDateTime.parse(iso).atZoneSameInstant(zone)
@@ -21,9 +33,9 @@ fun formatWhen(start: String, end: String, allDay: Boolean, zone: ZoneId = ZoneI
         return if (s.toLocalDate() == e.toLocalDate()) s.format(DAY) else "${s.format(SHORT_DAY)} – ${e.format(DAY)}"
     }
     return if (s.toLocalDate() == e.toLocalDate()) {
-        "${s.format(DAY)}, ${s.format(TIME)} – ${e.format(TIME)} Uhr"
+        "${s.format(DAY)}, ${s.format(TIME)} – ${e.format(TIME)}$UHR"
     } else {
-        "${s.format(SHORT_DAY)} ${s.format(TIME)} – ${e.format(SHORT_DAY)} ${e.format(TIME)} Uhr"
+        "${s.format(SHORT_DAY)} ${s.format(TIME)} – ${e.format(SHORT_DAY)} ${e.format(TIME)}$UHR"
     }
 }
 
@@ -40,12 +52,12 @@ fun recipientSummary(counts: Map<String, Int>): String {
     val portal = counts["portal"] ?: 0
     val total = recipientTotal(counts)
     val parts = buildList {
-        if (app > 0) add("$app per App")
-        if (mail > 0) add("$mail per E-Mail")
-        if (portal > 0) add("$portal nur im Mitgliederbereich")
+        if (app > 0) add(tr("{app} per App", "app" to app))
+        if (mail > 0) add(tr("{mail} per E-Mail", "mail" to mail))
+        if (portal > 0) add(tr("{portal} nur im Mitgliederbereich", "portal" to portal))
     }
-    val who = if (total == 1) "1 Mitglied" else "$total Mitglieder"
-    return if (parts.isEmpty()) "geht an niemanden" else "geht an $who, davon ${parts.joinToString(", ")}"
+    val who = if (total == 1) tr("1 Mitglied") else "$total Mitglieder"
+    return if (parts.isEmpty()) tr("geht an niemanden") else tr("geht an {who}, davon {parts}", "who" to who, "parts" to parts.joinToString(", "))
 }
 
 /** Nur geänderte Felder melden (Leerzeichen am Rand zählen nicht). */
@@ -54,4 +66,4 @@ fun changedFields(before: Map<String, String>, after: Map<String, String>): Map<
 
 /** Datum ohne Uhrzeit („2020-05-01“) als „01.05.2020“. */
 fun formatPlainDate(date: String?): String =
-    date?.let { runCatching { java.time.LocalDate.parse(it.take(10)).format(java.time.format.DateTimeFormatter.ofPattern("dd.MM.yyyy")) }.getOrNull() } ?: ""
+    date?.let { runCatching { java.time.LocalDate.parse(it.take(10)).format(java.time.format.DateTimeFormatter.ofPattern(if (english) "dd/MM/yyyy" else "dd.MM.yyyy")) }.getOrNull() } ?: ""
