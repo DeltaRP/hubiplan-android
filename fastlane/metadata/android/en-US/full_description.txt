@@ -1,0 +1,18 @@
+The companion app for HUBIplan, the free club management software. It connects to your club's
+HUBIplan instance (QR code from the member area in the browser) and shows:
+
+* Events of your club and its units, accept or decline with one tap
+* Events in the device calendar with reminders, “Response missing” notice
+* Messages and circulars from the board, instantly via push through a UnifiedPush app
+  such as ntfy (without Google, content end-to-end encrypted) or by polling
+* Send short messages (for the board and unit leaders)
+* Your own profile, report changes, take a member photo
+* Your club's colours and crest, layouts for phone and tablet
+* Shortcut with your club's crest and name on the home screen
+* Several clubs with their own HUBIplan address in one app
+* German or English, following your account or the Android app language
+
+In the app menu the app is called HUBIplan; after signing in it shows your club.
+The app only talks to your club's HUBIplan instance. It contains no ads, no analytics and no
+Google services (no Firebase, no Play services). It requires that your club uses HUBIplan
+and has given you access to the member area.
