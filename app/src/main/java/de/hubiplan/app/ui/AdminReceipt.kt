@@ -65,6 +65,7 @@ import androidx.core.view.WindowInsetsControllerCompat
 import de.hubiplan.app.data.AdminClient
 import de.hubiplan.app.data.ApiException
 import de.hubiplan.app.data.CashReceiptItem
+import de.hubiplan.app.data.ReceiptCache
 import de.hubiplan.app.data.FinanceAccount
 import de.hubiplan.app.data.FinanceCategory
 import de.hubiplan.app.data.ReceiptChoices
