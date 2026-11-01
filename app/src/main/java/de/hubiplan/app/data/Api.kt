@@ -418,6 +418,10 @@ class Api(
         null
     }
 
+    /** „Meine Ergebnisse“ (Wettbewerbe Schritt 5). */
+    suspend fun myResults(accessId: Int): MyResults =
+        json.decodeFromString(expect("GET", "/api/portal/$accessId/results/"))
+
     suspend fun circulars(accessId: Int): List<CircularItem> =
         json.decodeFromString(expect("GET", "/api/portal/$accessId/circulars/"))
 

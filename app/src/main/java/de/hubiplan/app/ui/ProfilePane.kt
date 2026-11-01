@@ -230,6 +230,10 @@ fun ProfilePane(access: PortalAccess, main: Screen.Main, vm: AppViewModel) {
                 },
             )
         }
+        if (access.competitionsEnabled) {
+            HorizontalDivider()
+            MyResultsSection(access, vm)
+        }
     }
 
     draft?.let { bitmap ->
