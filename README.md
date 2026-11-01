@@ -38,6 +38,8 @@ Paketname `de.hubiplan.app`, ab Android 9, für Telefon und Tablet.
 - Mitgliedsausweis mit QR-Code im Reiter Profil, auch ohne Netz (verschlüsselt gespeichert);
   zum Vorzeigen bildschirmfüllend und mit voller Helligkeit
 - eigenes Profil ansehen und Änderungen melden (der Verein prüft sie)
+- „Meine Ergebnisse“ im Profil: eigene Wettbewerbe mit Platz und Wert, Titel und Auszeichnungen
+  (wenn der Verein das Modul Wettbewerbe nutzt)
 - Mitgliederfoto mit der Kamera aufnehmen oder aus der Galerie wählen, mit Einwilligung;
   der Verein gibt es frei, Foto und Einwilligung lassen sich in der App widerrufen
 - Farben und Wappen des Vereins aus HUBIplan

@@ -126,9 +126,48 @@ data class PortalAccess(
     val theme: Theme? = null,
     @SerialName("events_enabled") val eventsEnabled: Boolean = true,
     @SerialName("imprint_key") val imprintKey: String? = null,
+    /** Modul Wettbewerbe an: „Meine Ergebnisse“ im Profil (ältere HUBIplan-Stände: aus) */
+    @SerialName("competitions_enabled") val competitionsEnabled: Boolean = false,
 ) {
     val title: String get() = clubDisplayName.ifBlank { clubName }
 }
+
+/** „Meine Ergebnisse“: eigene Starts und Titel (GET /api/portal/<Zugang>/results/). */
+@Serializable
+data class MyResults(
+    val starts: List<MyStart> = emptyList(),
+    val grants: List<MyGrant> = emptyList(),
+)
+
+@Serializable
+data class MyStart(
+    val competition: Int,
+    val title: String,
+    val date: String,
+    val status: String = "",
+    @SerialName("status_label") val statusLabel: String = "",
+    @SerialName("unit_name") val unitName: String = "",
+    val results: List<MyPlacing> = emptyList(),
+)
+
+@Serializable
+data class MyPlacing(
+    val scoring: String,
+    val place: Int? = null,
+    @SerialName("value_text") val valueText: String = "",
+    val field: Int? = null,
+)
+
+@Serializable
+data class MyGrant(
+    val id: Int,
+    val year: Int,
+    @SerialName("full_title") val fullTitle: String = "",
+    @SerialName("scoring_name") val scoringName: String = "",
+    val place: Int? = null,
+    @SerialName("competition_title") val competitionTitle: String = "",
+    @SerialName("trophy_name") val trophyName: String = "",
+)
 
 @Serializable
 data class Me(val user: AppUser, val device: DeviceInfo, val portal: List<PortalAccess>)
