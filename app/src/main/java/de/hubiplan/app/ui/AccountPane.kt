@@ -55,6 +55,8 @@ fun AccountPane(main: Screen.Main, vm: AppViewModel) {
         Text(main.account.email)
         Text(tr("Verbunden mit {x1}", "x1" to main.account.server.removePrefix("https://")), style = MaterialTheme.typography.bodySmall)
         TextButton(onClick = { open("${main.account.server}/mein-konto") }) { Text(tr("Mein Konto im Browser öffnen")) }
+        // Hilfe mit Anleitungen und Glossar liegt in der Instanz (hubiplan: frontend/src/help/)
+        TextButton(onClick = { open("${main.account.server}/hilfe") }) { Text(tr("Hilfe und Anleitungen im Browser")) }
         main.access?.let { a ->
             val key = a.imprintKey?.let { "/$it" } ?: ""
             TextButton(onClick = { open("${main.account.server}/datenschutz$key") }) { Text(tr("Datenschutzhinweise")) }
