@@ -318,7 +318,7 @@ fun InvoiceScreen(
                                             amount = amountInput(r.value.invoice.outstanding)
                                             key = UUID.randomUUID().toString()
                                             error = null
-                                            onChanged(tr("Barzahlung zu {x1} gebucht", "x1" to d.number ?: tr("der Rechnung")), r.changeSet)
+                                            onChanged(tr("Barzahlung zu {x1} gebucht", "x1" to (d.number ?: tr("der Rechnung"))), r.changeSet)
                                         } catch (e: ApiException) {
                                             error = if (e.status == 0) tr("Keine Verbindung. Bitte erneut versuchen; doppelt gebucht wird nicht.") else errors.message(e)
                                         }

@@ -560,7 +560,7 @@ private fun ChangeTypeDialog(
         title = { Text(tr("Mitgliedsart wechseln")) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(tr("Bisher: {x1}", "x1" to d.currentType?.memberTypeName ?: "keine"))
+                Text(tr("Bisher: {x1}", "x1" to (d.currentType?.memberTypeName ?: tr("keine"))))
                 error?.let { Text(it, color = MaterialTheme.colorScheme.error, modifier = Modifier.announce(urgent = true)) }
                 Picker(tr("Neue Mitgliedsart"), types.map { it to it.name }, chosen, { it.name }) { chosen = it }
                 DateField(tr("Ab"), from) { from = it }
