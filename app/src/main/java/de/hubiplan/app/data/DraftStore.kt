@@ -33,6 +33,18 @@ class DraftStore(context: Context, accountKey: String) {
         LocalAccountData.replace(tmp, file)
     }
 
+    /**
+     * Dateien, die sich nicht mehr entschlüsseln lassen (z. B. weil Android den Schlüssel nach
+     * dem Entfernen der Bildschirmsperre gelöscht hat). Sie bleiben liegen und werden in der
+     * Verwaltung als Hinweis gezählt, nie still ausgeblendet (Gesamtaudit 01.11., GA-F04).
+     */
+    fun unreadable(): List<File> = dir.listFiles().orEmpty()
+        .filter { it.name.endsWith(".bin") }
+        .filter { file -> runCatching { decodeDraft(String(DraftCrypto.open(alias, file.readBytes()))) }.isFailure }
+
+    /** Nur auf ausdrücklichen Wunsch: unlesbare Dateien löschen. */
+    fun discardUnreadable(): Int = unreadable().count { it.delete() }
+
     /** Anzahl ohne Entschlüsseln (z. B. als Warnung vor dem Abmelden). */
     fun count(): Int = dir.listFiles().orEmpty().count { it.name.endsWith(".bin") }
 

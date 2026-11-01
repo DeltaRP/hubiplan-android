@@ -1,6 +1,7 @@
 package de.hubiplan.app.push
 
 import android.util.Base64
+import android.util.Log
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import kotlinx.coroutines.runBlocking
@@ -11,7 +12,12 @@ class GoogleMessagingService : FirebaseMessagingService() {
         val body = message.data["b"] ?: return
         val bytes = runCatching { Base64.decode(body, Base64.DEFAULT) }.getOrNull() ?: return
         // Läuft schon im Hintergrund-Thread des Dienstes; kurz blockieren ist hier erlaubt
-        runBlocking { PushSetup.onGoogleMessage(applicationContext, bytes) }
+        try {
+            runBlocking { PushSetup.onGoogleMessage(applicationContext, bytes) }
+        } catch (e: Exception) {
+            // Eine fehlerhafte Nachricht darf die App nicht beenden (GA-S05)
+            Log.w("HUBIplan", "Push-Nachricht verworfen: ${e.javaClass.simpleName}")
+        }
     }
 
     override fun onNewToken(token: String) {

@@ -229,7 +229,7 @@ private fun AdminHome(units: List<AdminUnit>, until: String?, main: Screen.Main,
     val snackbar = remember { SnackbarHostState() }
     var unitKey by rememberSaveable { mutableStateOf(units.first().key) }
     val unit = units.firstOrNull { it.key == unitKey } ?: units.first()
-    val client = remember(unit.key) { vm.adminApi()?.let { AdminClient(it, unit.id, vm::useAdmin, unit.scope) } } ?: return
+    val client = remember(unit.key) { vm.adminApi()?.let { AdminClient(it, unit.id, vm::useAdmin, unit.scope, "${main.account.server}-${main.account.deviceId}") } } ?: return
     val errors = remember { AdminErrors(onLocked = vm::adminRejected) }
     val sections = sectionsFor(unit)
     val hasMembers = !unit.isDepartment && unit.permissions.any { it.startsWith("members.") }

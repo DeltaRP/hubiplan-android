@@ -1,0 +1,5 @@
+* Ohne Netz zeigt die App außerhalb der Verwaltung nur noch die Zahl wartender Kassenvorgänge
+* Nicht mehr lesbare Kassenvorgänge erscheinen als Hinweis in der Verwaltung statt still zu verschwinden
+* Quittungs-PDFs je Konto getrennt und beim Abmelden gelöscht
+* Gespiegelte Fotos werden richtig ausgerichtet
+* Abmelden trifft immer nur das gewählte Konto; fehlerhafte Push-Nachrichten werden verworfen

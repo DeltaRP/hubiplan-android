@@ -30,6 +30,7 @@ object LocalAccountData {
     /** Abmelden: alle lokalen Daten dieses Kontos und seinen Schlüssel löschen. */
     fun forget(context: Context, accountKey: String) {
         FOLDERS.forEach { dir(context, it, accountKey).deleteRecursively() }
+        ReceiptCache.forget(context.cacheDir, accountKey)
         DraftCrypto.deleteKey(alias(accountKey))
     }
 
@@ -40,6 +41,7 @@ object LocalAccountData {
      */
     fun retire(context: Context, accountKey: String, server: String = "", email: String = "") {
         dir(context, "ausweise", accountKey).deleteRecursively()
+        ReceiptCache.forget(context.cacheDir, accountKey)
         var kept = false
         for (folder in listOf("entwuerfe", "quittungen")) {
             val source = dir(context, folder, accountKey)

@@ -86,8 +86,33 @@ object WebPushCrypto {
         return mac.doFinal(data)
     }
 
-    fun decrypt(body: ByteArray, keys: PushKeys): ByteArray {
+    /** Höchste Größe einer Push-Nachricht (RFC 8030 verlangt mindestens 4096 Byte). */
+    const val MAX_BODY = 8192
+
+    /**
+     * Entschlüsselt eine Push-Nachricht. Jeder Fehler (auch ungültige Punkte, Längen oder
+     * Schlüssel) endet als [PushDecryptException] und damit am vorgesehenen Fehlerpfad
+     * (Gesamtaudit 01.11., GA-S05).
+     */
+    fun decrypt(body: ByteArray, keys: PushKeys): ByteArray = try {
+        decryptChecked(body, keys)
+    } catch (e: PushDecryptException) {
+        throw e
+    } catch (e: java.security.GeneralSecurityException) {
+        throw PushDecryptException("Ungültige Nachricht")
+    } catch (e: IllegalArgumentException) {
+        throw PushDecryptException("Ungültige Nachricht")
+    } catch (e: java.nio.BufferUnderflowException) {
+        throw PushDecryptException("Nachricht zu kurz")
+    } catch (e: ArithmeticException) {
+        throw PushDecryptException("Ungültige Nachricht")
+    } catch (e: IllegalStateException) {
+        throw PushDecryptException("Ungültige Nachricht")
+    }
+
+    private fun decryptChecked(body: ByteArray, keys: PushKeys): ByteArray {
         if (body.size < 21 + 65 + 17) throw PushDecryptException("Nachricht zu kurz")
+        if (body.size > MAX_BODY) throw PushDecryptException("Nachricht zu groß")
         val buffer = ByteBuffer.wrap(body)
         val salt = ByteArray(16).also { buffer.get(it) }
         val recordSize = buffer.int

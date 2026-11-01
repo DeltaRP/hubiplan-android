@@ -33,6 +33,29 @@ class WebPushCryptoTest {
         }
     }
 
+    /** GA-S05: ungültige Punkte, Präfixe und Längen enden immer als PushDecryptException. */
+    @Test
+    fun ungueltige_nachrichten_bleiben_in_der_fehlergrenze() {
+        val k = PushKeys.parse(keys)!!
+        val original = WebPushCrypto.unb64(body)
+        fun withSender(sender: ByteArray): ByteArray =
+            original.copyOfRange(0, 21) + sender + original.copyOfRange(21 + 65, original.size)
+        val cases = listOf(
+            withSender(byteArrayOf(0x04) + ByteArray(64)), // Punkt nicht auf der Kurve
+            withSender(byteArrayOf(0x02) + ByteArray(64)), // falsches Präfix
+            withSender(byteArrayOf(0x04) + ByteArray(64) { 0xFF.toByte() }), // außerhalb des Feldes
+            original.copyOf(50), // zu kurz
+            original.copyOf(WebPushCrypto.MAX_BODY + 1), // zu groß
+            original.copyOf().also { it[16] = 0; it[17] = 0; it[18] = 0; it[19] = 1 }, // Datensatzgröße 1
+            original.copyOf().also { it[it.size - 1] = (it[it.size - 1] + 1).toByte() }, // GCM-Tag falsch
+        )
+        for (case in cases) {
+            assertThrows(PushDecryptException::class.java) { WebPushCrypto.decrypt(case, k) }
+        }
+        // Danach geht eine gültige Nachricht weiter durch
+        assertNotNull(WebPushCrypto.decrypt(original, k))
+    }
+
     @Test
     fun schluessel_speichern_und_laden() {
         val k = PushKeys.generate()

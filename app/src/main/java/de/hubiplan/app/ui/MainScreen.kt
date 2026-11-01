@@ -267,38 +267,39 @@ private fun OfflinePane(main: Screen.Main, events: Boolean) {
     }
 }
 
-/** Noch nicht gesendete Buchungen und Quittungen dieses Kontos, auch ohne Netz sichtbar (F03). */
+/**
+ * Noch nicht gesendete Buchungen und Quittungen dieses Kontos, auch ohne Netz sichtbar (F03).
+ * Außerhalb der entsperrten Verwaltung nur die Anzahl, ohne Entschlüsseln (GA-S10, Ralf 01.11.).
+ */
 @Composable
 fun PendingLocalCard(main: Screen.Main) {
     val context = androidx.compose.ui.platform.LocalContext.current
     val key = de.hubiplan.app.data.LocalAccountData.key(main.account.server, main.account.deviceId)
-    var lines by remember(key) { mutableStateOf<List<String>>(emptyList()) }
+    var count by remember(key) { mutableStateOf(0) }
     LaunchedEffect(key) {
-        lines = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+        count = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
             runCatching {
-                de.hubiplan.app.data.DraftStore(context, key).list().map {
-                    "Buchung ${formatPlainDate(it.date)} · ${formatMoney(it.amount)} · ${it.text}" +
-                        (it.unitName.takeIf { n -> n.isNotBlank() }?.let { n -> " ($n)" } ?: "")
-                } + de.hubiplan.app.data.ReceiptStore(context, key).list().map {
-                    "Quittung ${formatMoney(it.amount)} · ${it.counterpartyName}"
-                }
-            }.getOrDefault(emptyList())
+                de.hubiplan.app.data.DraftStore(context, key).count() + de.hubiplan.app.data.ReceiptStore(context, key).count()
+            }.getOrDefault(0)
         }
     }
-    if (lines.isEmpty()) return
+    if (count == 0) return
     androidx.compose.material3.Card(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Text(
-                "Kasse: noch nicht gesendet (${lines.size})",
+                pendingCountText(count),
                 style = MaterialTheme.typography.titleSmall,
                 modifier = Modifier.asHeading(),
             )
             Text(
-                "Liegen verschlüsselt auf diesem Telefon. Sie werden gesendet, sobald Verbindung besteht und " +
-                    "du die Verwaltung öffnest.",
+                "Sie liegen verschlüsselt auf diesem Telefon und werden gesendet, sobald Verbindung besteht und " +
+                    "du die Verwaltung öffnest. Einzelheiten stehen dort.",
                 style = MaterialTheme.typography.bodySmall,
             )
-            lines.forEach { Text(it) }
         }
     }
 }
+
+/** „1 Kassenvorgang wartet auf Versand“ / „3 Kassenvorgänge warten auf Versand“. */
+fun pendingCountText(count: Int): String =
+    if (count == 1) "1 Kassenvorgang wartet auf Versand" else "$count Kassenvorgänge warten auf Versand"

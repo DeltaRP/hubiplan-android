@@ -3,6 +3,8 @@ package de.hubiplan.app.push
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.util.Log
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -30,6 +32,11 @@ class PushReceiver : BroadcastReceiver() {
                         intent.getStringExtra("id"),
                     )
                 }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                // Eine fehlerhafte Nachricht darf die App nicht beenden (GA-S05)
+                Log.w("HUBIplan", "Push-Nachricht verworfen: ${e.javaClass.simpleName}")
             } finally {
                 pending.finish()
             }

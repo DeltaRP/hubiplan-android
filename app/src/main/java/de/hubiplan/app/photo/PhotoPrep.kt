@@ -30,22 +30,41 @@ object PhotoPrep {
         val bitmap = resolver.openInputStream(uri)?.use {
             BitmapFactory.decodeStream(it, null, BitmapFactory.Options().apply { inSampleSize = sample })
         } ?: return null
-        val degrees = resolver.openInputStream(uri)?.use { stream ->
-            when (ExifInterface(stream).getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL)) {
-                ExifInterface.ORIENTATION_ROTATE_90 -> 90
-                ExifInterface.ORIENTATION_ROTATE_180 -> 180
-                ExifInterface.ORIENTATION_ROTATE_270 -> 270
-                else -> 0
-            }
-        } ?: 0
-        return scale(rotate(bitmap, degrees))
+        val exif = resolver.openInputStream(uri)?.use { stream ->
+            ExifInterface(stream).getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL)
+        } ?: ExifInterface.ORIENTATION_NORMAL
+        return scale(orient(bitmap, Orientation.of(exif)))
     }
 
-    fun rotate(bitmap: Bitmap, degrees: Int): Bitmap {
-        if (degrees % 360 == 0) return bitmap
-        val matrix = Matrix().apply { postRotate(degrees.toFloat()) }
+    /**
+     * Alle acht EXIF-Ausrichtungen (Gesamtaudit 01.11., GA-F05): erst im Uhrzeigersinn
+     * drehen, dann waagerecht spiegeln. Werte wie in ExifInterface (1 normal … 8 270°).
+     */
+    data class Orientation(val degrees: Int, val mirror: Boolean) {
+        companion object {
+            fun of(exif: Int): Orientation = when (exif) {
+                2 -> Orientation(0, true) // FLIP_HORIZONTAL
+                3 -> Orientation(180, false) // ROTATE_180
+                4 -> Orientation(180, true) // FLIP_VERTICAL
+                5 -> Orientation(90, true) // TRANSPOSE
+                6 -> Orientation(90, false) // ROTATE_90
+                7 -> Orientation(270, true) // TRANSVERSE
+                8 -> Orientation(270, false) // ROTATE_270
+                else -> Orientation(0, false)
+            }
+        }
+    }
+
+    fun orient(bitmap: Bitmap, orientation: Orientation): Bitmap {
+        if (orientation.degrees % 360 == 0 && !orientation.mirror) return bitmap
+        val matrix = Matrix().apply {
+            postRotate(orientation.degrees.toFloat())
+            if (orientation.mirror) postScale(-1f, 1f)
+        }
         return Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
     }
+
+    fun rotate(bitmap: Bitmap, degrees: Int): Bitmap = orient(bitmap, Orientation(degrees, false))
 
     private fun scale(bitmap: Bitmap): Bitmap {
         val side = max(bitmap.width, bitmap.height)
