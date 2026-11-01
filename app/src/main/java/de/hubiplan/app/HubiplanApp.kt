@@ -18,5 +18,7 @@ class HubiplanApp : Application() {
         val keys = de.hubiplan.app.data.KeyMaintenance(this, accounts)
         de.hubiplan.app.data.DeviceTokens.renewer = { server, token -> keys.renew(server, token) }
         de.hubiplan.app.push.GooglePush.init(this)
+        // Übrig gebliebene Quittungs-PDFs aufräumen (GA-S06), ohne den Start aufzuhalten
+        Thread { runCatching { de.hubiplan.app.data.ReceiptCache.clear(this) } }.start()
     }
 }

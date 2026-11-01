@@ -397,9 +397,22 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     /** Konto ist weg (abgemeldet, ungültig): zum nächsten wechseln oder Verbinden zeigen. */
-    private suspend fun dropActive(error: String?) {
-        val slot = accounts.active.value
-        val current = store.currentAccount()
+    private suspend fun dropActive(error: String?) = dropSlot(accounts.active.value, null, error)
+
+    /**
+     * Konto auf [slot] entfernen. Mit [expected] nur, wenn dort noch genau dieses Konto liegt:
+     * Eine verspätete Abmeldung von A darf nie das inzwischen gewählte Konto B löschen
+     * (Gesamtaudit 01.11., GA-F03). War [slot] nicht mehr aktiv, bleibt das aktive Konto stehen.
+     */
+    private suspend fun dropSlot(slot: Int, expected: Account?, error: String?) {
+        val slotStore = accounts.store(slot)
+        val current = slotStore.currentAccount()
+        if (expected != null &&
+            (current == null || current.server != expected.server || current.deviceId != expected.deviceId)
+        ) {
+            return
+        }
+        val wasActive = accounts.active.value == slot
         val server = current?.server
         // Selbst abgemeldet (nach der Rückfrage „senden oder verwerfen“): alle lokalen Daten
         // und Schlüssel löschen (AND-S02). Vom Server abgemeldet: ungesendete Belege in die
@@ -414,10 +427,14 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         }
         // Noch wartende Zu-/Absagen dieses Kontos verwerfen (C-F02)
         current?.let { runCatching { de.hubiplan.app.sync.RsvpActionReceiver.cancelFor(context, it) } }
-        _admin.value = AdminState()
-        runCatching { PushSetup.forget(context, store) }
+        if (wasActive) _admin.value = AdminState()
+        runCatching { PushSetup.forget(context, slotStore) }
         runCatching { server?.let { DeviceCalendar(context).removeCalendarsExcept(emptySet(), it) } }
         accounts.remove(slot)
+        if (!wasActive) {
+            loadAccounts()
+            return
+        }
         val next = accounts.list().firstOrNull()
         if (next != null) {
             switchTo(next.first)
@@ -705,7 +722,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
             val ids = (drafts.list().map { it.unitId } + receipts.list().map { it.unitId }).distinct()
             for (id in ids) {
                 val unit = units.firstOrNull { it.id == id } ?: continue
-                val client = AdminClient(api, id, ::useAdmin, unit.scope)
+                val client = AdminClient(api, id, ::useAdmin, unit.scope, key)
                 try {
                     sendDrafts(client, drafts)
                     sendReceipts(client, receipts)
@@ -723,13 +740,26 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
+    /** Plätze, deren Abmeldung gerade läuft (zweimal tippen meldet nicht zweimal ab). */
+    private val loggingOut = mutableSetOf<Int>()
+
     fun logout() {
         val main = screen.value as? Screen.Main ?: return
+        // Konto und Platz jetzt festhalten: Bis Push und Server antworten, kann ein anderes
+        // Konto gewählt sein (GA-F03)
+        val slot = accounts.active.value
+        val slotStore = accounts.store(slot)
+        val account = main.account
+        if (!loggingOut.add(slot)) return
         viewModelScope.launch {
-            // Auch ohne Netz lokal abmelden; der Server lässt den Schlüssel sonst nach 180 Tagen verfallen
-            runCatching { PushSetup.disable(context, store) }
-            runCatching { Api(main.account.server, main.account.token).logout(main.account.deviceId) }
-            dropActive(null)
+            try {
+                // Auch ohne Netz lokal abmelden; der Server lässt den Schlüssel sonst nach 180 Tagen verfallen
+                runCatching { PushSetup.disable(context, slotStore) }
+                runCatching { Api(account.server, account.token).logout(account.deviceId) }
+                dropSlot(slot, account, null)
+            } finally {
+                loggingOut.remove(slot)
+            }
         }
     }
 

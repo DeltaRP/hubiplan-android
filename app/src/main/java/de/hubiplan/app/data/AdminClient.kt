@@ -20,6 +20,8 @@ class AdminClient(
     private val onUse: () -> Unit = {},
     /** "u": Einheit · "d": Untereinheit mit Rollen nur dort (Zugführung, B4) */
     val scope: String = "u",
+    /** Kontokennung (Server und Gerät): Quittungs-PDFs liegen je Konto getrennt (GA-S06). */
+    val accountKey: String = "",
 ) {
     private val base = "/api/app/v1/admin/$scope/$unitId/"
 

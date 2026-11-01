@@ -40,6 +40,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import de.hubiplan.app.data.ReceiptCache
 import androidx.core.content.FileProvider
 import de.hubiplan.app.data.AdminClient
 import de.hubiplan.app.data.ApiException
@@ -59,13 +60,6 @@ import java.util.UUID
 
 private val DAY_INPUT: DateTimeFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy")
 
-/** Quittungen liegen nur kurz im Cache (zum Teilen) und werden beim nächsten Mal gelöscht. */
-internal fun receiptDir(context: Context): File = File(context.cacheDir, "quittungen")
-
-fun clearReceipts(context: Context, olderThanMillis: Long = 10 * 60 * 1000L) {
-    val limit = System.currentTimeMillis() - olderThanMillis
-    receiptDir(context).listFiles().orEmpty().filter { it.lastModified() < limit }.forEach { it.delete() }
-}
 
 /** Rechnungen der Einheit: zuerst die offenen, Suche nach Name, Betreff oder Nummer. */
 @Composable
@@ -79,7 +73,7 @@ fun BillingSection(client: AdminClient, errors: AdminErrors, reload: Int, onOpen
     var page by remember(client.unitId) { mutableIntStateOf(1) }
     var hasMore by remember(client.unitId) { mutableStateOf(false) }
     var error by remember(client.unitId) { mutableStateOf<String?>(null) }
-    LaunchedEffect(Unit) { withContext(Dispatchers.IO) { clearReceipts(context) } }
+    LaunchedEffect(Unit) { withContext(Dispatchers.IO) { ReceiptCache.clear(context) } }
     LaunchedEffect(client.unitId, search, openOnly, reload) {
         delay(300) // erst suchen, wenn die Eingabe ruht
         try {
@@ -206,9 +200,7 @@ fun InvoiceScreen(
                 error = "Die Quittung ließ sich nicht laden."
             } else {
                 val file = withContext(Dispatchers.IO) {
-                    clearReceipts(context)
-                    receiptDir(context).mkdirs()
-                    File(receiptDir(context), receiptFileName(current.number, paymentId)).apply { writeBytes(bytes) }
+                    ReceiptCache.write(context, client.accountKey, receiptFileName(current.number, paymentId), bytes)
                 }
                 openPdf(context, file, share)?.let { error = it }
             }

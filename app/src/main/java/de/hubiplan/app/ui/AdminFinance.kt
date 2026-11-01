@@ -125,8 +125,14 @@ fun FinanceSection(
     var discardDraft by remember { mutableStateOf<BookingDraft?>(null) }
     var fixReceipt by remember { mutableStateOf<ReceiptDraft?>(null) }
     var discardReceipt by remember { mutableStateOf<ReceiptDraft?>(null) }
+    // Unlesbare Entwürfe und Quittungen (Schlüssel weg): zählen und melden (GA-F04)
+    var unreadable by remember { mutableIntStateOf(0) }
+    var discardUnreadable by remember { mutableStateOf(false) }
     suspend fun reloadDrafts() {
         drafts = withContext(Dispatchers.IO) { store.list().filter { it.unitId == client.unitId } }
+        unreadable = withContext(Dispatchers.IO) {
+            runCatching { store.unreadable().size + receiptStore.unreadable().size }.getOrDefault(0)
+        }
     }
     suspend fun reloadReceipts() {
         receipts = withContext(Dispatchers.IO) { receiptStore.list().filter { it.unitId == client.unitId } }
@@ -188,6 +194,30 @@ fun FinanceSection(
         }
     }
 
+    if (discardUnreadable) {
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { discardUnreadable = false },
+            title = { Text("Unlesbare Vorgänge verwerfen?") },
+            text = {
+                Text(
+                    "Diese Vorgänge lassen sich auf diesem Telefon nicht mehr öffnen und wurden nie gesendet. " +
+                        "Nach dem Verwerfen müssen sie neu erfasst werden.",
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    discardUnreadable = false
+                    scope.launch {
+                        withContext(Dispatchers.IO) { store.discardUnreadable() + receiptStore.discardUnreadable() }
+                        reloadDrafts()
+                        reloadReceipts()
+                    }
+                }) { Text("Verwerfen") }
+            },
+            dismissButton = { TextButton(onClick = { discardUnreadable = false }) { Text("Behalten") } },
+        )
+    }
+
     fixDraft?.let { d ->
         BookingDraftFixDialog(d, accounts.orEmpty(), categories, onDismiss = { fixDraft = null }) { fixed ->
             fixDraft = null
@@ -241,6 +271,27 @@ fun FinanceSection(
                 }
             }
             error?.let { Text(it, color = MaterialTheme.colorScheme.error, modifier = Modifier.announce(urgent = true).padding(horizontal = 16.dp)) }
+        }
+        if (unreadable > 0) {
+            item {
+                Card(Modifier.fillMaxWidth().padding(16.dp)) {
+                    Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Text(
+                            if (unreadable == 1) "1 Vorgang ist nicht mehr lesbar" else "$unreadable Vorgänge sind nicht mehr lesbar",
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.titleSmall,
+                            modifier = Modifier.asHeading().announce(urgent = true),
+                        )
+                        Text(
+                            "Noch nicht gesendete Buchungen oder Quittungen lassen sich auf diesem Telefon nicht mehr " +
+                                "öffnen, meist weil die Bildschirmsperre entfernt wurde. Sie bleiben gespeichert. " +
+                                "Bitte prüfe in HUBIplan, was fehlt, und erfasse es dort neu.",
+                            style = MaterialTheme.typography.bodySmall,
+                        )
+                        if (canEdit) TextButton(onClick = { discardUnreadable = true }) { Text("Unlesbare verwerfen …") }
+                    }
+                }
+            }
         }
         if (receipts.isNotEmpty()) {
             item {

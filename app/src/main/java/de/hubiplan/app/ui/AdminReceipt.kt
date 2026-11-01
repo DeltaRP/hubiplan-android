@@ -65,6 +65,7 @@ import androidx.core.view.WindowInsetsControllerCompat
 import de.hubiplan.app.data.AdminClient
 import de.hubiplan.app.data.ApiException
 import de.hubiplan.app.data.CashReceiptItem
+import de.hubiplan.app.data.ReceiptCache
 import de.hubiplan.app.data.FinanceAccount
 import de.hubiplan.app.data.FinanceCategory
 import de.hubiplan.app.data.ReceiptChoices
@@ -76,7 +77,6 @@ import de.hubiplan.app.data.json
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.io.File
 import java.time.OffsetDateTime
 import java.util.UUID
 
@@ -454,9 +454,7 @@ fun ReceiptScreen(
             } else {
                 val safe = number.replace(Regex("[^A-Za-z0-9-]"), "-")
                 val file = withContext(Dispatchers.IO) {
-                    clearReceipts(context)
-                    receiptDir(context).mkdirs()
-                    File(receiptDir(context), "Quittung-$safe.pdf").apply { writeBytes(bytes) }
+                    ReceiptCache.write(context, client.accountKey, "Quittung-$safe.pdf", bytes)
                 }
                 openPdf(context, file, share)?.let { error = it }
             }

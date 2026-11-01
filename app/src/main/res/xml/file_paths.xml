@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Foto aus der Kamera (nach dem Hochladen gelöscht) und Quittungen zum Teilen (nach 10 Minuten gelöscht), beides nur im Cache -->
+<!-- Foto aus der Kamera (nach dem Hochladen gelöscht) und Quittungen zum Teilen (je Konto und Ausgabe eigener Ordner, aufgeräumt beim Start, nach 10 Minuten und beim Abmelden), beides nur im Cache -->
 <paths>
     <cache-path name="fotos" path="fotos/" />
     <cache-path name="quittungen" path="quittungen/" />
