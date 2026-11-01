@@ -4,6 +4,7 @@ import android.content.Context
 import java.io.File
 import java.io.IOException
 import java.security.MessageDigest
+import de.hubiplan.app.tr
 
 /**
  * Lokale Daten eines Kontos (Entwürfe, Quittungen, Ausweise) eindeutig getrennt
@@ -194,7 +195,7 @@ object LocalAccountData {
     fun replace(tmp: File, target: File) {
         if (!tmp.renameTo(target)) {
             tmp.delete()
-            throw IOException("Die Datei ließ sich nicht speichern.")
+            throw IOException(tr("Die Datei ließ sich nicht speichern."))
         }
     }
 }

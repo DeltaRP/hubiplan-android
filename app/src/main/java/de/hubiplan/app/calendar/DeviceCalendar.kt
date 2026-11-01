@@ -12,6 +12,7 @@ import android.provider.CalendarContract.Calendars
 import android.provider.CalendarContract.Events
 import android.provider.CalendarContract.Reminders
 import androidx.core.content.ContextCompat
+import de.hubiplan.app.tr
 
 /**
  * Lokale Kalender der App im Gerätekalender (Konto-Typ „lokal“): Sie werden nicht in ein
@@ -67,7 +68,7 @@ class DeviceCalendar(private val context: Context) {
             put(Calendars.CALENDAR_TIME_ZONE, java.util.TimeZone.getDefault().id)
         }
         val uri = resolver.insert(asSyncAdapter(Calendars.CONTENT_URI), values)
-            ?: error("Kalender konnte nicht angelegt werden.")
+            ?: error(tr("Kalender konnte nicht angelegt werden."))
         return ContentUris.parseId(uri)
     }
 

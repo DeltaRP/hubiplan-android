@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Sprachen der App für die Android-Einstellung „App-Sprache“ (ab Android 13).
+     Die Texte selbst stehen in assets/texte/en.json (Deutsch ist der Schlüssel). -->
+<locale-config xmlns:android="http://schemas.android.com/apk/res/android">
+    <locale android:name="de" />
+    <locale android:name="en" />
+</locale-config>

@@ -19,6 +19,7 @@ import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.IOException
 import java.util.concurrent.TimeUnit
+import de.hubiplan.app.tr
 
 /** Fehler mit Meldung für das Mitglied. [status] 401 mit Geräteschlüssel: neu verbinden. */
 class ApiException(val status: Int, message: String, val body: String = "") : Exception(message)
@@ -44,7 +45,7 @@ private const val ADMIN_TOKEN_PREFIX = "hpa_"
 // Server, die Unterschriftsformat 2 angekündigt haben (Kopfzeile in jeder App-Antwort)
 private val SIGNATURE_V2 = java.util.concurrent.ConcurrentHashMap.newKeySet<String>()
 private val KEY_PATHS = setOf("/api/app/v1/devices/current/renew/", "/api/app/v1/devices/current/key/")
-private const val OFFLINE = "Keine Verbindung zum Server. Bitte die Internetverbindung prüfen."
+private val OFFLINE: String get() = tr("Keine Verbindung zum Server. Bitte die Internetverbindung prüfen.")
 
 /** `code` aus einer Fehlerantwort (z. B. `device_renew`, `admin_signature`). */
 fun errorCode(text: String): String? = try {
@@ -110,7 +111,7 @@ class Api(
                 DeviceKeys.sign(adminKeyAlias, message)
             } catch (e: DeviceKeys.Unavailable) {
                 // Wie „Verwaltung gesperrt“: die App schaltet neu frei
-                throw ApiException(401, "Bitte die Verwaltung neu freischalten.")
+                throw ApiException(401, tr("Bitte die Verwaltung neu freischalten."))
             }
             builder.header(SignedFormat.TIME_HEADER, time).header(SignedFormat.SIGNATURE_HEADER, signature)
             if (nonce.isNotEmpty()) builder.header(SignedFormat.NONCE_HEADER, nonce)
@@ -146,7 +147,7 @@ class Api(
         // Erneuern und Nachmelden selbst nie erneut erneuern (das wäre eine Schleife)
         if (raw.code == 401 && errorCode(raw.text) == "device_renew" && used != null && path !in KEY_PATHS) {
             if (!retry || DeviceTokens.renew(server, used) == null) {
-                throw ApiException(0, "Der Geräteschlüssel ließ sich gerade nicht erneuern. Bitte später erneut versuchen.")
+                throw ApiException(0, tr("Der Geräteschlüssel ließ sich gerade nicht erneuern. Bitte später erneut versuchen."))
             }
             return@withContext send(method, path, body?.let { bytes!!.toRequestBody(it.contentType()) }, headers, accept, retry = false)
         }
@@ -229,7 +230,7 @@ class Api(
                 flow["is_pending"]?.jsonPrimitive?.booleanOrNull == true
         } ?: false
         if (status == 401 && pendingMfa && session != null) return LoginStep.NeedsCode(session)
-        throw ApiException(status, runCatching { allauthMessage(root) }.getOrNull() ?: "Anmeldung fehlgeschlagen. Bitte E-Mail und Passwort prüfen.")
+        throw ApiException(status, runCatching { allauthMessage(root) }.getOrNull() ?: tr("Anmeldung fehlgeschlagen. Bitte E-Mail und Passwort prüfen."))
     }
 
     suspend fun createDevice(sessionToken: String, deviceName: String, appVersion: String, deviceKey: String = ""): Paired =
@@ -246,6 +247,13 @@ class Api(
         )
 
     suspend fun me(): Me = json.decodeFromString(expect("GET", "/api/app/v1/me/"))
+
+    /** Sprache des Kontos (gilt auch im Browser) und wählbare Sprachen. */
+    suspend fun language(): LanguageState = json.decodeFromString(expect("GET", "/api/app/v1/me/language/"))
+
+    suspend fun setLanguage(code: String): LanguageState = json.decodeFromString(
+        expect("PATCH", "/api/app/v1/me/language/", json.encodeToString(JsonObject.serializer(), jsonObjectOf("language" to code))),
+    )
 
     // --- Geräteschlüssel erneuern (Härtung H7) ---
 
@@ -458,11 +466,11 @@ fun errorMessage(status: Int, text: String): String {
         if (fields.isNotEmpty()) return fields.joinToString(" ")
     }
     return when (status) {
-        401 -> "Dieses Gerät ist nicht mehr angemeldet. Bitte die App neu verbinden."
-        403 -> "Dafür fehlt die Berechtigung."
-        404 -> "Nicht gefunden."
-        429 -> "Zu viele Versuche. Bitte später erneut."
-        in 500..599 -> "Der Server hat gerade ein Problem. Bitte später erneut versuchen."
-        else -> "Unerwartete Antwort vom Server ($status)."
+        401 -> tr("Dieses Gerät ist nicht mehr angemeldet. Bitte die App neu verbinden.")
+        403 -> tr("Dafür fehlt die Berechtigung.")
+        404 -> tr("Nicht gefunden.")
+        429 -> tr("Zu viele Versuche. Bitte später erneut.")
+        in 500..599 -> tr("Der Server hat gerade ein Problem. Bitte später erneut versuchen.")
+        else -> tr("Unerwartete Antwort vom Server ({status}).", "status" to status)
     }
 }

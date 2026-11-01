@@ -68,6 +68,8 @@ import java.util.UUID
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import de.hubiplan.app.tr
+import de.hubiplan.app.trn
 
 // Verwaltung in der App, Schritt B4: Kasse mit Belegfoto
 
@@ -145,7 +147,7 @@ fun FinanceSection(
             try {
                 val sent = withContext(Dispatchers.IO) { sendReceipts(client, receiptStore) }
                 if (sent > 0) {
-                    onChanged(if (sent == 1) "1 Quittung abgeschlossen" else "$sent Quittungen abgeschlossen", null)
+                    onChanged(trn("1 Quittung abgeschlossen", "{n} Quittungen abgeschlossen", sent), null)
                     refresh++
                 }
             } catch (e: ApiException) {
@@ -162,7 +164,7 @@ fun FinanceSection(
             try {
                 val sent = withContext(Dispatchers.IO) { sendDrafts(client, store) }
                 if (sent > 0) {
-                    onChanged(if (sent == 1) "1 Entwurf gebucht" else "$sent Entwürfe gebucht", null)
+                    onChanged(trn("1 Entwurf gebucht", "{n} Entwürfe gebucht", sent), null)
                     refresh++
                 }
             } catch (e: ApiException) {
@@ -197,11 +199,10 @@ fun FinanceSection(
     if (discardUnreadable) {
         androidx.compose.material3.AlertDialog(
             onDismissRequest = { discardUnreadable = false },
-            title = { Text("Unlesbare Vorgänge verwerfen?") },
+            title = { Text(tr("Unlesbare Vorgänge verwerfen?")) },
             text = {
                 Text(
-                    "Diese Vorgänge lassen sich auf diesem Telefon nicht mehr öffnen und wurden nie gesendet. " +
-                        "Nach dem Verwerfen müssen sie neu erfasst werden.",
+                    tr("Diese Vorgänge lassen sich auf diesem Telefon nicht mehr öffnen und wurden nie gesendet. Nach dem Verwerfen müssen sie neu erfasst werden."),
                 )
             },
             confirmButton = {
@@ -212,9 +213,9 @@ fun FinanceSection(
                         reloadDrafts()
                         reloadReceipts()
                     }
-                }) { Text("Verwerfen") }
+                }) { Text(tr("Verwerfen")) }
             },
-            dismissButton = { TextButton(onClick = { discardUnreadable = false }) { Text("Behalten") } },
+            dismissButton = { TextButton(onClick = { discardUnreadable = false }) { Text(tr("Behalten")) } },
         )
     }
 
@@ -229,7 +230,7 @@ fun FinanceSection(
         }
     }
     discardDraft?.let { d ->
-        DiscardDraftDialog("Entwurf", signed = false, onDismiss = { discardDraft = null }) {
+        DiscardDraftDialog(tr("Entwurf"), signed = false, onDismiss = { discardDraft = null }) {
             discardDraft = null
             store.delete(d.key)
             scope.launch { reloadDrafts() }
@@ -251,7 +252,7 @@ fun FinanceSection(
         }
     }
     discardReceipt?.let { d ->
-        DiscardDraftDialog("Quittung", signed = true, onDismiss = { discardReceipt = null }) {
+        DiscardDraftDialog(tr("Quittung"), signed = true, onDismiss = { discardReceipt = null }) {
             discardReceipt = null
             receiptStore.delete(d.key)
             scope.launch { reloadReceipts() }
@@ -261,13 +262,13 @@ fun FinanceSection(
     LazyColumn(Modifier.fillMaxSize()) {
         item {
             Row(Modifier.fillMaxWidth().padding(start = 16.dp, end = 8.dp, top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-                Text("Kasse", style = MaterialTheme.typography.titleMedium, modifier = Modifier.asHeading().weight(1f))
-                TextButton(onClick = { refresh++ }) { Text("Aktualisieren") }
-                if (canEdit) Button(onClick = onNew) { Text("Neue Buchung") }
+                Text(tr("Kasse"), style = MaterialTheme.typography.titleMedium, modifier = Modifier.asHeading().weight(1f))
+                TextButton(onClick = { refresh++ }) { Text(tr("Aktualisieren")) }
+                if (canEdit) Button(onClick = onNew) { Text(tr("Neue Buchung")) }
             }
             if (canEdit) {
                 Row(Modifier.fillMaxWidth().padding(horizontal = 8.dp), horizontalArrangement = Arrangement.End) {
-                    OutlinedButton(onClick = onReceipt) { Text("Quittung mit Unterschrift") }
+                    OutlinedButton(onClick = onReceipt) { Text(tr("Quittung mit Unterschrift")) }
                 }
             }
             error?.let { Text(it, color = MaterialTheme.colorScheme.error, modifier = Modifier.announce(urgent = true).padding(horizontal = 16.dp)) }
@@ -277,18 +278,16 @@ fun FinanceSection(
                 Card(Modifier.fillMaxWidth().padding(16.dp)) {
                     Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                         Text(
-                            if (unreadable == 1) "1 Vorgang ist nicht mehr lesbar" else "$unreadable Vorgänge sind nicht mehr lesbar",
+                            if (unreadable == 1) tr("1 Vorgang ist nicht mehr lesbar") else tr("{unreadable} Vorgänge sind nicht mehr lesbar", "unreadable" to unreadable),
                             color = MaterialTheme.colorScheme.error,
                             style = MaterialTheme.typography.titleSmall,
                             modifier = Modifier.asHeading().announce(urgent = true),
                         )
                         Text(
-                            "Noch nicht gesendete Buchungen oder Quittungen lassen sich auf diesem Telefon nicht mehr " +
-                                "öffnen, meist weil die Bildschirmsperre entfernt wurde. Sie bleiben gespeichert. " +
-                                "Bitte prüfe in HUBIplan, was fehlt, und erfasse es dort neu.",
+                            tr("Noch nicht gesendete Buchungen oder Quittungen lassen sich auf diesem Telefon nicht mehr öffnen, meist weil die Bildschirmsperre entfernt wurde. Sie bleiben gespeichert. Bitte prüfe in HUBIplan, was fehlt, und erfasse es dort neu."),
                             style = MaterialTheme.typography.bodySmall,
                         )
-                        if (canEdit) TextButton(onClick = { discardUnreadable = true }) { Text("Unlesbare verwerfen …") }
+                        if (canEdit) TextButton(onClick = { discardUnreadable = true }) { Text(tr("Unlesbare verwerfen …")) }
                     }
                 }
             }
@@ -308,20 +307,20 @@ fun FinanceSection(
             item {
                 Card(Modifier.fillMaxWidth().padding(16.dp)) {
                     Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                        Text("Noch nicht gesendet (${drafts.size})", style = MaterialTheme.typography.titleSmall, modifier = Modifier.asHeading())
-                        Text("Liegen verschlüsselt auf diesem Telefon, bis sie gebucht sind.", style = MaterialTheme.typography.bodySmall)
+                        Text(tr("Noch nicht gesendet ({size})", "size" to drafts.size), style = MaterialTheme.typography.titleSmall, modifier = Modifier.asHeading())
+                        Text(tr("Liegen verschlüsselt auf diesem Telefon, bis sie gebucht sind."), style = MaterialTheme.typography.bodySmall)
                         drafts.forEach { d ->
                             Text("${formatPlainDate(d.date)} · ${formatMoney(d.amount)} · ${d.text}")
                             d.error?.let { Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall, modifier = Modifier.announce(urgent = true)) }
                             if (d.error != null) {
                                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                    OutlinedButton(onClick = { fixDraft = d }) { Text("Korrigieren") }
-                                    TextButton(onClick = { discardDraft = d }) { Text("Verwerfen …") }
+                                    OutlinedButton(onClick = { fixDraft = d }) { Text(tr("Korrigieren")) }
+                                    TextButton(onClick = { discardDraft = d }) { Text(tr("Verwerfen …")) }
                                 }
                             }
                         }
                         if (sending) LinearProgressIndicator(Modifier.fillMaxWidth())
-                        OutlinedButton(onClick = { send() }, enabled = !sending) { Text("Jetzt senden") }
+                        OutlinedButton(onClick = { send() }, enabled = !sending) { Text(tr("Jetzt senden")) }
                     }
                 }
             }
@@ -340,10 +339,10 @@ fun FinanceSection(
         item {
             HorizontalDivider()
             Row(Modifier.padding(horizontal = 12.dp, vertical = 4.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                FilterChip(selected = !withoutReceipt, onClick = { withoutReceipt = false }, label = { Text("Letzte Buchungen") })
-                FilterChip(selected = withoutReceipt, onClick = { withoutReceipt = true }, label = { Text("Ohne Beleg") })
+                FilterChip(selected = !withoutReceipt, onClick = { withoutReceipt = false }, label = { Text(tr("Letzte Buchungen")) })
+                FilterChip(selected = withoutReceipt, onClick = { withoutReceipt = true }, label = { Text(tr("Ohne Beleg")) })
             }
-            if (bookings.isEmpty() && list != null) Text(if (withoutReceipt) "Alle Buchungen haben einen Beleg." else "Noch keine Buchungen.", Modifier.padding(16.dp))
+            if (bookings.isEmpty() && list != null) Text(if (withoutReceipt) tr("Alle Buchungen haben einen Beleg.") else tr("Noch keine Buchungen."), Modifier.padding(16.dp))
         }
         items(bookings, key = { "buchung-${it.id}" }) { b ->
             BookingRow(b) { onOpen(b.id) }
@@ -362,7 +361,7 @@ fun FinanceSection(
                             error = errors.message(e)
                         }
                     }
-                }) { Text("Weitere laden (${bookings.size} von $count)") }
+                }) { Text(tr("Weitere laden ({size} von {count})", "size" to bookings.size, "count" to count)) }
             }
         }
     }
@@ -376,7 +375,7 @@ private fun BookingRow(b: BookingItem, onClick: () -> Unit) {
         else -> ""
     }
     ListItem(
-        overlineContent = { Text("${formatPlainDate(b.date)} · Nr. ${b.displayNumber}") },
+        overlineContent = { Text(tr("{date} · Nr. {number}", "date" to formatPlainDate(b.date), "number" to b.displayNumber)) },
         headlineContent = { Text(b.text.ifBlank { b.kindLabel }) },
         supportingContent = {
             Text(
@@ -384,7 +383,7 @@ private fun BookingRow(b: BookingItem, onClick: () -> Unit) {
                     b.categoryName,
                     b.counterparty.ifBlank { null },
                     if (b.kind == "transfer") "${b.accountName} → ${b.toAccountName ?: ""}" else b.accountName,
-                    if (b.receipts.isEmpty()) "ohne Beleg" else null,
+                    if (b.receipts.isEmpty()) tr("ohne Beleg") else null,
                 ).joinToString(" · "),
             )
         },
@@ -406,7 +405,7 @@ fun rememberPhotoPicker(onPhoto: (Bitmap) -> Unit, onError: (String) -> Unit): P
             val bitmap = withContext(Dispatchers.IO) { runCatching { PhotoPrep.load(context, uri) }.getOrNull() }
             cameraFile?.delete()
             cameraFile = null
-            if (bitmap == null) onError("Das Bild ließ sich nicht öffnen.") else onPhoto(bitmap)
+            if (bitmap == null) onError(tr("Das Bild ließ sich nicht öffnen.")) else onPhoto(bitmap)
         }
     }
     val takePicture = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { ok ->
@@ -420,7 +419,7 @@ fun rememberPhotoPicker(onPhoto: (Bitmap) -> Unit, onError: (String) -> Unit): P
         takePicture.launch(FileProvider.getUriForFile(context, "${context.packageName}.dateien", file))
     }
     val permission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { ok ->
-        if (ok) startCamera() else onError("Ohne Zugriff auf die Kamera bitte ein Bild aus der Galerie wählen.")
+        if (ok) startCamera() else onError(tr("Ohne Zugriff auf die Kamera bitte ein Bild aus der Galerie wählen."))
     }
     val pick = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri -> if (uri != null) load(uri) }
     return remember {
@@ -459,7 +458,7 @@ fun BookingScreen(client: AdminClient, id: Int, canEdit: Boolean, errors: AdminE
             try {
                 val jpeg = withContext(Dispatchers.Default) { PhotoPrep.jpeg(bitmap) }
                 client.addReceipt(id, jpeg)
-                onChanged("Beleg hinzugefügt", null)
+                onChanged(tr("Beleg hinzugefügt"), null)
                 refresh++
             } catch (e: ApiException) {
                 error = errors.message(e)
@@ -469,7 +468,7 @@ fun BookingScreen(client: AdminClient, id: Int, canEdit: Boolean, errors: AdminE
     }, onError = { error = it })
 
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        TextButton(onClick = onBack) { Text("‹ Zurück") }
+        TextButton(onClick = onBack) { Text(tr("‹ Zurück")) }
         if (busy) LinearProgressIndicator(Modifier.fillMaxWidth())
         error?.let { Text(it, color = MaterialTheme.colorScheme.error, modifier = Modifier.announce(urgent = true)) }
         val b = booking ?: return@Column
@@ -477,26 +476,26 @@ fun BookingScreen(client: AdminClient, id: Int, canEdit: Boolean, errors: AdminE
         Text("${b.kindLabel} · ${formatMoney(b.amount)}", style = MaterialTheme.typography.titleMedium)
         Text(
             listOfNotNull(
-                "Nr. ${b.displayNumber}",
+                tr("Nr. {number}", "number" to b.displayNumber),
                 formatPlainDate(b.date),
                 b.categoryName,
                 if (b.kind == "transfer") "${b.accountName} → ${b.toAccountName ?: ""}" else b.accountName,
                 b.counterparty.ifBlank { null },
             ).joinToString(" · "),
         )
-        Text("Ändern oder stornieren bitte im Browser.", style = MaterialTheme.typography.bodySmall)
-        if (b.receipts.isEmpty()) Text("Noch kein Beleg.")
+        Text(tr("Ändern oder stornieren bitte im Browser."), style = MaterialTheme.typography.bodySmall)
+        if (b.receipts.isEmpty()) Text(tr("Noch kein Beleg."))
         b.receipts.forEach { r ->
             if (r.contentType.startsWith("image/")) {
                 RemoteImage(r.id.toString(), { client.receipt(it.toInt()) }, r.name, Modifier.fillMaxWidth().heightIn(max = 480.dp))
             } else {
-                Text("${r.name} (im Browser ansehen)")
+                Text(tr("{name} (im Browser ansehen)", "name" to r.name))
             }
         }
         if (canEdit) {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedButton(onClick = picker.camera, enabled = !busy) { Text("Beleg fotografieren") }
-                OutlinedButton(onClick = picker.gallery, enabled = !busy) { Text("Aus der Galerie") }
+                OutlinedButton(onClick = picker.camera, enabled = !busy) { Text(tr("Beleg fotografieren")) }
+                OutlinedButton(onClick = picker.gallery, enabled = !busy) { Text(tr("Aus der Galerie")) }
             }
         }
     }
@@ -547,24 +546,24 @@ fun BookingForm(
         (kindCategories.isEmpty() || category != null)
 
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        TextButton(onClick = onBack) { Text("‹ Zurück") }
-        Text("Neue Buchung", style = MaterialTheme.typography.headlineSmall, modifier = Modifier.asHeading())
-        Text("Wird sofort gebucht, nur mit Belegfoto. Ändern und Storno im Browser.", style = MaterialTheme.typography.bodySmall)
+        TextButton(onClick = onBack) { Text(tr("‹ Zurück")) }
+        Text(tr("Neue Buchung"), style = MaterialTheme.typography.headlineSmall, modifier = Modifier.asHeading())
+        Text(tr("Wird sofort gebucht, nur mit Belegfoto. Ändern und Storno im Browser."), style = MaterialTheme.typography.bodySmall)
         if (busy) LinearProgressIndicator(Modifier.fillMaxWidth())
         error?.let { Text(it, color = MaterialTheme.colorScheme.error, modifier = Modifier.announce(urgent = true)) }
-        photo?.let { Image(it.asImageBitmap(), contentDescription = "Beleg", contentScale = ContentScale.Fit, modifier = Modifier.fillMaxWidth().heightIn(max = 320.dp)) }
+        photo?.let { Image(it.asImageBitmap(), contentDescription = tr("Beleg"), contentScale = ContentScale.Fit, modifier = Modifier.fillMaxWidth().heightIn(max = 320.dp)) }
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Button(onClick = picker.camera) { Text(if (photo == null) "Beleg fotografieren" else "Neu fotografieren") }
-            OutlinedButton(onClick = picker.gallery) { Text("Aus der Galerie") }
+            Button(onClick = picker.camera) { Text(if (photo == null) tr("Beleg fotografieren") else tr("Neu fotografieren")) }
+            OutlinedButton(onClick = picker.gallery) { Text(tr("Aus der Galerie")) }
         }
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            FilterChip(selected = kind == "expense", onClick = { kind = "expense"; category = null }, label = { Text("Ausgabe") })
-            FilterChip(selected = kind == "income", onClick = { kind = "income"; category = null }, label = { Text("Einnahme") })
+            FilterChip(selected = kind == "expense", onClick = { kind = "expense"; category = null }, label = { Text(tr("Ausgabe")) })
+            FilterChip(selected = kind == "income", onClick = { kind = "income"; category = null }, label = { Text(tr("Einnahme")) })
         }
         OutlinedTextField(
             value = amount,
             onValueChange = { amount = it },
-            label = { Text("Betrag in €") },
+            label = { Text(tr("Betrag in €")) },
             singleLine = true,
             isError = amount.isNotBlank() && amountValue == null,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
@@ -573,23 +572,23 @@ fun BookingForm(
         OutlinedTextField(
             value = date,
             onValueChange = { date = it },
-            label = { Text("Datum (TT.MM.JJJJ)") },
+            label = { Text(tr("Datum (TT.MM.JJJJ)")) },
             singleLine = true,
             isError = dateValue == null,
             trailingIcon = { DatePickButton(date) { date = it } },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             modifier = Modifier.fillMaxWidth(),
         )
-        OutlinedTextField(value = text, onValueChange = { text = it.take(200) }, label = { Text("Buchungstext") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+        OutlinedTextField(value = text, onValueChange = { text = it.take(200) }, label = { Text(tr("Buchungstext")) }, singleLine = true, modifier = Modifier.fillMaxWidth())
         OutlinedTextField(
             value = counterparty,
             onValueChange = { counterparty = it.take(200) },
-            label = { Text(if (kind == "expense") "Empfänger (optional)" else "Zahler (optional)") },
+            label = { Text(if (kind == "expense") tr("Empfänger (optional)") else tr("Zahler (optional)")) },
             singleLine = true,
             modifier = Modifier.fillMaxWidth(),
         )
-        ChoicePicker("Konto", accounts.map { it to it.name }, account, { it.name }) { account = it }
-        if (kindCategories.isNotEmpty()) ChoicePicker("Kategorie", kindCategories.map { it to it.name }, category, { it.name }) { category = it }
+        ChoicePicker(tr("Konto"), accounts.map { it to it.name }, account, { it.name }) { account = it }
+        if (kindCategories.isNotEmpty()) ChoicePicker(tr("Kategorie"), kindCategories.map { it to it.name }, category, { it.name }) { category = it }
         Button(
             enabled = ready && !busy,
             modifier = Modifier.fillMaxWidth(),
@@ -621,12 +620,12 @@ fun BookingForm(
                     try {
                         val booked = client.book(draft, jpeg)
                         withContext(Dispatchers.IO) { store.delete(key) }
-                        onDone("Gebucht als Nr. ${booked.displayNumber}")
+                        onDone(tr("Gebucht als Nr. {displayNumber}", "displayNumber" to booked.displayNumber))
                     } catch (e: ApiException) {
                         if (e.status == 0) {
                             // Ohne Netz: verschlüsselt aufheben, später senden
                             if (!saved) withContext(Dispatchers.IO) { store.save(draft) }
-                            onDone("Ohne Verbindung: als Entwurf gespeichert, wird später gesendet")
+                            onDone(tr("Ohne Verbindung: als Entwurf gespeichert, wird später gesendet"))
                         } else {
                             // Abgelehnt: Entwurf wieder entfernen, die Eingaben stehen noch im Formular
                             withContext(Dispatchers.IO) { store.delete(key) }
@@ -636,6 +635,6 @@ fun BookingForm(
                     busy = false
                 }
             },
-        ) { Text("Buchen") }
+        ) { Text(tr("Buchen")) }
     }
 }

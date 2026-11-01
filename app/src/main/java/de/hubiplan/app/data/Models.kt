@@ -343,3 +343,14 @@ data class CardTheme(
     val primary: String = "",
     @SerialName("on_primary") val onPrimary: String = "",
 )
+
+/** Sprache des Kontos und auf dem Server wählbare Sprachen (/api/app/v1/me/language/). */
+@Serializable
+data class LanguageOption(val code: String, val name: String)
+
+@Serializable
+data class LanguageState(
+    val languages: List<LanguageOption> = emptyList(),
+    val default: String = "de",
+    val language: String? = null,
+)

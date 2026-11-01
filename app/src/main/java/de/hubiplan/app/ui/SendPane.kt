@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.dp
 import de.hubiplan.app.data.ApiException
 import de.hubiplan.app.data.Sender
 import kotlinx.coroutines.launch
+import de.hubiplan.app.tr
 
 /** Vorstand oder Zugführung: Kurzmitteilung an alle Mitglieder der Einheit. */
 @Composable
@@ -70,7 +71,7 @@ fun SendPane(vm: AppViewModel, onDone: (String) -> Unit, onCancel: () -> Unit) {
                 val result = api.sendShort(s, subject.trim(), body.trim(), confirm)
                 if (confirm) {
                     preview = null
-                    onDone("Kurzmitteilung an ${s.name} ist unterwegs.")
+                    onDone(tr("Kurzmitteilung an {name} ist unterwegs.", "name" to s.name))
                 } else {
                     preview = result.counts
                 }
@@ -86,19 +87,19 @@ fun SendPane(vm: AppViewModel, onDone: (String) -> Unit, onCancel: () -> Unit) {
         Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        TextButton(onClick = onCancel) { Text("‹ Zurück") }
-        Text("Kurzmitteilung senden", style = MaterialTheme.typography.headlineSmall, modifier = Modifier.asHeading())
+        TextButton(onClick = onCancel) { Text(tr("‹ Zurück")) }
+        Text(tr("Kurzmitteilung senden"), style = MaterialTheme.typography.headlineSmall, modifier = Modifier.asHeading())
         val list = senders
         when {
             list == null && error == null -> Loading()
-            list != null && list.isEmpty() -> Text("Für dieses Konto gibt es keine Einheit, an die du senden darfst.")
+            list != null && list.isEmpty() -> Text(tr("Für dieses Konto gibt es keine Einheit, an die du senden darfst."))
         }
         if (!list.isNullOrEmpty()) {
             Box {
                 val senderName = sender?.let { s -> s.name + if (s.club.isNotBlank()) " (${s.club})" else "" } ?: "–"
                 OutlinedButton(
                     onClick = { pick = list.size > 1 },
-                    modifier = if (list.size > 1) Modifier.dropdown("An", senderName, pick) else Modifier,
+                    modifier = if (list.size > 1) Modifier.dropdown(tr("An"), senderName, pick) else Modifier,
                 ) {
                     Text("An: " + (sender?.let { s -> s.name + if (s.club.isNotBlank()) " (${s.club})" else "" } ?: "–") + if (list.size > 1) " ▾" else "")
                 }
@@ -114,26 +115,26 @@ fun SendPane(vm: AppViewModel, onDone: (String) -> Unit, onCancel: () -> Unit) {
                     }
                 }
             }
-            Text("Geht an alle Mitglieder dieser Einheit: per App, sonst per E-Mail.", style = MaterialTheme.typography.bodySmall)
+            Text(tr("Geht an alle Mitglieder dieser Einheit: per App, sonst per E-Mail."), style = MaterialTheme.typography.bodySmall)
             OutlinedTextField(
                 value = subject,
                 onValueChange = { subject = it.take(200) },
-                label = { Text("Betreff") },
+                label = { Text(tr("Betreff")) },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
             )
             OutlinedTextField(
                 value = body,
                 onValueChange = { body = it.take(maxBody) },
-                label = { Text("Text") },
-                supportingText = { Text("${body.length} von $maxBody Zeichen") },
+                label = { Text(tr("Text")) },
+                supportingText = { Text(tr("{length} von {maxBody} Zeichen", "length" to body.length, "maxBody" to maxBody)) },
                 modifier = Modifier.fillMaxWidth().heightIn(min = 140.dp),
             )
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Button(
                     onClick = { call(confirm = false) },
                     enabled = !busy && sender != null && subject.isNotBlank() && body.isNotBlank(),
-                ) { Text("Weiter") }
+                ) { Text(tr("Weiter")) }
             }
         }
         error?.let { Text(it, color = MaterialTheme.colorScheme.error, modifier = Modifier.announce(urgent = true)) }
@@ -142,12 +143,12 @@ fun SendPane(vm: AppViewModel, onDone: (String) -> Unit, onCancel: () -> Unit) {
     preview?.let { counts ->
         AlertDialog(
             onDismissRequest = { preview = null },
-            title = { Text("Kurzmitteilung senden?") },
-            text = { Text("„${subject.trim()}“ ${recipientSummary(counts)}. Gesendete Mitteilungen lassen sich nicht zurückholen.") },
+            title = { Text(tr("Kurzmitteilung senden?")) },
+            text = { Text(tr("„{x1}“ {x2}. Gesendete Mitteilungen lassen sich nicht zurückholen.", "x1" to subject.trim(), "x2" to recipientSummary(counts))) },
             confirmButton = {
-                TextButton(onClick = { call(confirm = true) }, enabled = !busy && recipientTotal(counts) > 0) { Text("Jetzt senden") }
+                TextButton(onClick = { call(confirm = true) }, enabled = !busy && recipientTotal(counts) > 0) { Text(tr("Jetzt senden")) }
             },
-            dismissButton = { TextButton(onClick = { preview = null }) { Text("Abbrechen") } },
+            dismissButton = { TextButton(onClick = { preview = null }) { Text(tr("Abbrechen")) } },
         )
     }
 }

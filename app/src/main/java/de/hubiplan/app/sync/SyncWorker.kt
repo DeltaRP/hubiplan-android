@@ -24,6 +24,7 @@ import kotlinx.coroutines.flow.first
 import java.time.LocalDate
 import java.time.OffsetDateTime
 import java.util.concurrent.TimeUnit
+import de.hubiplan.app.tr
 
 /**
  * Abgleich im Hintergrund: Termine aller Einheiten in den Gerätekalender schreiben und
@@ -156,7 +157,7 @@ class SyncWorker(context: Context, params: WorkerParameters) : CoroutineWorker(c
                 accessId,
                 occ.eventId,
                 occ.title,
-                "${formatWhen(occ.startsAt, occ.endsAt, occ.allDay)} · $unit. Anmeldeschluss ist bald.",
+                tr("{x1} · {unit}. Anmeldeschluss ist bald.", "x1" to formatWhen(occ.startsAt, occ.endsAt, occ.allDay), "unit" to unit),
                 de.hubiplan.app.data.ClubLogo.load(applicationContext, account, accessId),
             )
             shown += key

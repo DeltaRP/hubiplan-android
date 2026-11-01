@@ -36,6 +36,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import de.hubiplan.app.data.ApiException
 import de.hubiplan.app.data.CircularItem
 import de.hubiplan.app.data.PortalAccess
+import de.hubiplan.app.tr
 
 /** Rundschreiben und Mitteilungen der Einheit (wie „Rundschreiben“ im Mitgliederbereich). */
 @Composable
@@ -68,13 +69,13 @@ fun CircularsPane(access: PortalAccess, vm: AppViewModel) {
     ListDetail(
         hasDetail = selected != null,
         onBack = { selected = null },
-        emptyDetail = "Mitteilung auswählen",
+        emptyDetail = tr("Mitteilung auswählen"),
         list = {
             val list = items
             Column(Modifier.fillMaxSize()) {
                 if (canSend) {
                     Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Button(onClick = { selected = SEND }) { Text("Kurzmitteilung senden") }
+                        Button(onClick = { selected = SEND }) { Text(tr("Kurzmitteilung senden")) }
                     }
                 }
                 notice?.let { Text(it, color = MaterialTheme.colorScheme.primary, modifier = Modifier.padding(horizontal = 16.dp)) }
@@ -82,10 +83,10 @@ fun CircularsPane(access: PortalAccess, vm: AppViewModel) {
                     // Fehler mit erneutem Versuch statt leerer Liste (UX-Audit 31.10. A07)
                     error != null -> Column(Modifier.padding(16.dp)) {
                         Text(error ?: "", color = MaterialTheme.colorScheme.error, modifier = Modifier.announce(urgent = true))
-                        TextButton(onClick = { reload++ }) { Text("Erneut laden") }
+                        TextButton(onClick = { reload++ }) { Text(tr("Erneut laden")) }
                     }
                     list == null -> Loading()
-                    list.isEmpty() -> Message("Noch keine Mitteilungen.")
+                    list.isEmpty() -> Message(tr("Noch keine Mitteilungen."))
                     else -> LazyColumn(Modifier.fillMaxSize()) {
                         items(list, key = { it.id }) { c ->
                             ListItem(
@@ -96,7 +97,7 @@ fun CircularsPane(access: PortalAccess, vm: AppViewModel) {
                                     ListItemDefaults.colors()
                                 },
                                 overlineContent = { Text(listOf(c.kindLabel, formatDate(c.sentAt)).filter { it.isNotBlank() }.joinToString(" · ")) },
-                                headlineContent = { Text(c.subject.ifBlank { "(ohne Betreff)" }) },
+                                headlineContent = { Text(c.subject.ifBlank { tr("(ohne Betreff)") }) },
                                 supportingContent = { if (c.sender.isNotBlank()) Text(c.sender) },
                             )
                             HorizontalDivider()
@@ -145,11 +146,11 @@ private fun CircularDetail(access: PortalAccess, id: Int, vm: AppViewModel, onBa
         Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        TextButton(onClick = onBack) { Text("‹ Zurück") }
+        TextButton(onClick = onBack) { Text(tr("‹ Zurück")) }
         error?.let { Text(it, color = MaterialTheme.colorScheme.error, modifier = Modifier.announce(urgent = true)) }
         val c = item
         if (c == null) {
-            if (error == null) Loading() else TextButton(onClick = { attempt++ }) { Text("Erneut laden") }
+            if (error == null) Loading() else TextButton(onClick = { attempt++ }) { Text(tr("Erneut laden")) }
             return@Column
         }
         Text(c.subject, style = MaterialTheme.typography.headlineSmall, modifier = Modifier.asHeading())
@@ -163,7 +164,7 @@ private fun CircularDetail(access: PortalAccess, id: Int, vm: AppViewModel, onBa
                 runCatching {
                     context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(server.trimEnd('/') + "/mein-bereich/rundschreiben")))
                 }
-            }) { Text("Mit Anhängen im Browser öffnen") }
+            }) { Text(tr("Mit Anhängen im Browser öffnen")) }
         }
     }
 }

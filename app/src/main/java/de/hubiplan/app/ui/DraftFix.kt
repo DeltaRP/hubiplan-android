@@ -16,6 +16,7 @@ import de.hubiplan.app.data.BookingDraft
 import de.hubiplan.app.data.FinanceAccount
 import de.hubiplan.app.data.FinanceCategory
 import de.hubiplan.app.data.ReceiptDraft
+import de.hubiplan.app.tr
 
 // Lokale Entwürfe der Kasse korrigieren statt nur verwerfen (UX-Audit 31.10. A10, F08):
 // Konto und Kategorie lassen sich ändern; Betrag, Person und Zweck nicht, weil die
@@ -34,14 +35,14 @@ fun DiscardDraftDialog(what: String, signed: Boolean, onDismiss: () -> Unit, onC
         text = {
             Text(
                 if (signed) {
-                    "Die Quittung ist schon unterschrieben. Verworfen ist sie endgültig weg; für den Vorgang braucht es dann eine neue Quittung mit neuen Unterschriften."
+                    tr("Die Quittung ist schon unterschrieben. Verworfen ist sie endgültig weg; für den Vorgang braucht es dann eine neue Quittung mit neuen Unterschriften.")
                 } else {
-                    "Der Entwurf mit Belegfoto wird von diesem Telefon gelöscht und nicht gebucht."
+                    tr("Der Entwurf mit Belegfoto wird von diesem Telefon gelöscht und nicht gebucht.")
                 },
             )
         },
-        confirmButton = { TextButton(onClick = onConfirm) { Text("Endgültig verwerfen") } },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Behalten") } },
+        confirmButton = { TextButton(onClick = onConfirm) { Text(tr("Endgültig verwerfen")) } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(tr("Behalten")) } },
     )
 }
 
@@ -58,14 +59,14 @@ fun BookingDraftFixDialog(
     var category by remember { mutableStateOf(fitting.firstOrNull { it.id == draft.category }) }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Entwurf korrigieren") },
+        title = { Text(tr("Entwurf korrigieren")) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text("${formatPlainDate(draft.date)} · ${formatMoney(draft.amount)} · ${draft.text}")
                 draft.error?.let { Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall) }
-                if (accounts.isEmpty()) Text("Konten lassen sich gerade nicht laden; bitte mit Verbindung erneut öffnen.")
-                ChoicePicker("Konto", accounts.map { it to it.name }, account, { it.name }) { account = it }
-                if (fitting.isNotEmpty()) ChoicePicker("Kategorie", fitting.map { it to it.name }, category, { it.name }) { category = it }
+                if (accounts.isEmpty()) Text(tr("Konten lassen sich gerade nicht laden; bitte mit Verbindung erneut öffnen."))
+                ChoicePicker(tr("Konto"), accounts.map { it to it.name }, account, { it.name }) { account = it }
+                if (fitting.isNotEmpty()) ChoicePicker(tr("Kategorie"), fitting.map { it to it.name }, category, { it.name }) { category = it }
             }
         },
         confirmButton = {
@@ -83,9 +84,9 @@ fun BookingDraftFixDialog(
                         ),
                     )
                 },
-            ) { Text("Speichern und senden") }
+            ) { Text(tr("Speichern und senden")) }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Abbrechen") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(tr("Abbrechen")) } },
     )
 }
 
@@ -102,17 +103,17 @@ fun ReceiptDraftFixDialog(
     var category by remember { mutableStateOf(fitting.firstOrNull { it.id == draft.category }) }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Quittung korrigieren") },
+        title = { Text(tr("Quittung korrigieren")) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text("${formatMoney(draft.amount)} · ${draft.counterpartyName} · ${draft.purpose}")
                 draft.error?.let { Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall) }
                 Text(
-                    "Betrag, Name und Zweck sind unterschrieben und bleiben. Stimmen sie nicht, Quittung verwerfen und neu ausstellen.",
+                    tr("Betrag, Name und Zweck sind unterschrieben und bleiben. Stimmen sie nicht, Quittung verwerfen und neu ausstellen."),
                     style = MaterialTheme.typography.bodySmall,
                 )
-                ChoicePicker("Barkasse", accounts.map { it to it.name }, account, { it.name }) { account = it }
-                ChoicePicker("Kategorie", fitting.map { it to it.name }, category, { it.name }) { category = it }
+                ChoicePicker(tr("Barkasse"), accounts.map { it to it.name }, account, { it.name }) { account = it }
+                ChoicePicker(tr("Kategorie"), fitting.map { it to it.name }, category, { it.name }) { category = it }
             }
         },
         confirmButton = {
@@ -131,8 +132,8 @@ fun ReceiptDraftFixDialog(
                         ),
                     )
                 },
-            ) { Text("Speichern und senden") }
+            ) { Text(tr("Speichern und senden")) }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Abbrechen") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(tr("Abbrechen")) } },
     )
 }

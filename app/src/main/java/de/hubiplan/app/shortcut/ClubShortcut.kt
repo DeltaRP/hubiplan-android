@@ -17,6 +17,7 @@ import de.hubiplan.app.data.ClubLogo
 import de.hubiplan.app.data.LocalAccountData
 import de.hubiplan.app.data.PortalAccess
 import de.hubiplan.app.sync.Notifications
+import de.hubiplan.app.tr
 
 /**
  * Verknüpfung auf dem Startbildschirm mit Wappen und Namen des Vereins (oder Zugs). Name und
@@ -53,13 +54,13 @@ object ClubShortcut {
         val update = pinned.mapNotNull { byId[it] }.map { info(context, account, it) }
         if (update.isNotEmpty()) runCatching { ShortcutManagerCompat.updateShortcuts(context, update) }
         val gone = pinned.filter { it !in byId }
-        if (gone.isNotEmpty()) disable(context, gone, "Kein Zugang mehr zu dieser Einheit")
+        if (gone.isNotEmpty()) disable(context, gone, tr("Kein Zugang mehr zu dieser Einheit"))
     }
 
     /** Abgemeldet: Verknüpfungen dieses Kontos ausgrauen (entfernen kann nur der Nutzer). */
     fun forget(context: Context, account: Account) {
         val pinned = pinnedIds(context, account)
-        if (pinned.isNotEmpty()) disable(context, pinned, "In HUBIplan abgemeldet")
+        if (pinned.isNotEmpty()) disable(context, pinned, tr("In HUBIplan abgemeldet"))
     }
 
     /** Gehört eine Verknüpfung zu einem bereits angelegten Zugang? */

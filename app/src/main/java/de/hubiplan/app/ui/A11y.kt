@@ -31,6 +31,7 @@ import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
+import de.hubiplan.app.tr
 
 // Bausteine für TalkBack und Schalterbedienung (Barrierefreiheit 30.10.2026, A-01 bis A-04).
 
@@ -118,7 +119,7 @@ fun DatePickButton(value: String, onPick: (String) -> Unit) {
             current.dayOfMonth,
         ).show()
     }) {
-        Icon(Icons.Filled.DateRange, contentDescription = "Datum im Kalender wählen")
+        Icon(Icons.Filled.DateRange, contentDescription = tr("Datum im Kalender wählen"))
     }
 }
 
@@ -136,6 +137,6 @@ fun TimePickButton(value: String, onPick: (String) -> Unit) {
             true,
         ).show()
     }) {
-        Icon(Icons.Filled.Edit, contentDescription = "Uhrzeit auswählen")
+        Icon(Icons.Filled.Edit, contentDescription = tr("Uhrzeit auswählen"))
     }
 }

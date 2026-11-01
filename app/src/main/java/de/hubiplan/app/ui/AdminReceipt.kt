@@ -79,6 +79,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.time.OffsetDateTime
 import java.util.UUID
+import de.hubiplan.app.tr
 
 // Quittung mit Unterschrift (hubiplan konzepte/digitale-quittung.md): vorbereiten, beide
 // unterschreiben (Gegenseite im Vollbild, quer), abschließen mit Belegnummer aus dem
@@ -234,21 +235,21 @@ private fun SignatureFullscreen(title: String, text: String, onConfirm: (Signatu
     ) {
         Text(text, style = MaterialTheme.typography.titleMedium, color = Color(0xFF222222))
         if (LocalConfiguration.current.orientation == Configuration.ORIENTATION_PORTRAIT) {
-            Text("Tipp: Telefon quer halten, dann ist mehr Platz.", style = MaterialTheme.typography.bodySmall, color = Color(0xFF444444))
+            Text(tr("Tipp: Telefon quer halten, dann ist mehr Platz."), style = MaterialTheme.typography.bodySmall, color = Color(0xFF444444))
         }
         SignaturePad(strokes, title, Modifier.fillMaxWidth().weight(1f))
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)) {
-            TextButton(onClick = { strokes.clear() }, enabled = !strokes.isEmpty) { Text("Löschen") }
-            OutlinedButton(onClick = { if (strokes.isEmpty) onCancel() else askCancel = true }) { Text("Abbrechen") }
-            Button(onClick = { strokes.toStrokes()?.let(onConfirm) }, enabled = !strokes.isEmpty) { Text("Bestätigen") }
+            TextButton(onClick = { strokes.clear() }, enabled = !strokes.isEmpty) { Text(tr("Löschen")) }
+            OutlinedButton(onClick = { if (strokes.isEmpty) onCancel() else askCancel = true }) { Text(tr("Abbrechen")) }
+            Button(onClick = { strokes.toStrokes()?.let(onConfirm) }, enabled = !strokes.isEmpty) { Text(tr("Bestätigen")) }
         }
     }
     if (askCancel) {
         AlertDialog(
             onDismissRequest = { askCancel = false },
-            title = { Text("Unterschrift verwerfen?") },
-            confirmButton = { TextButton(onClick = onCancel) { Text("Verwerfen") } },
-            dismissButton = { TextButton(onClick = { askCancel = false }) { Text("Weiter unterschreiben") } },
+            title = { Text(tr("Unterschrift verwerfen?")) },
+            confirmButton = { TextButton(onClick = onCancel) { Text(tr("Verwerfen")) } },
+            dismissButton = { TextButton(onClick = { askCancel = false }) { Text(tr("Weiter unterschreiben")) } },
         )
     }
 }
@@ -258,7 +259,7 @@ private fun now(): String = OffsetDateTime.now().withNano(0).toString()
 /** Was die Gegenseite mit ihrer Unterschrift bestätigt (wie auf dem Server). */
 fun confirmationText(receives: Boolean, amount: String, unitName: String, purpose: String): String {
     val money = formatMoney(amount)
-    val text = if (receives) "Ich habe $money an $unitName gezahlt." else "Ich habe $money von $unitName erhalten."
+    val text = if (receives) tr("Ich habe {money} an {unitName} gezahlt.", "money" to money, "unitName" to unitName) else tr("Ich habe {money} von {unitName} erhalten.", "money" to money, "unitName" to unitName)
     return "$text Zweck: $purpose"
 }
 
@@ -330,7 +331,7 @@ fun ReceiptScreen(
                 client.storedSignature().signature
             } catch (e: ApiException) {
                 if (e.status == 0) throw e
-                error = "Die hinterlegte Unterschrift ließ sich nicht laden: " + errors.message(e)
+                error = tr("Die hinterlegte Unterschrift ließ sich nicht laden: ") + errors.message(e)
                 choices?.signature
             }
             val fresh = ReceiptChoices(accounts, categories, signature)
@@ -367,12 +368,12 @@ fun ReceiptScreen(
     val signRole = signing
     if (signRole != null) {
         val text = if (signRole == "treasurer") {
-            if (receives) "${formatMoney(parsedAmount)} von $name erhalten. Zweck: $purpose" else "${formatMoney(parsedAmount)} an $name ausgezahlt. Zweck: $purpose"
+            if (receives) tr("{x1} von {name} erhalten. Zweck: {purpose}", "x1" to formatMoney(parsedAmount), "name" to name, "purpose" to purpose) else "${formatMoney(parsedAmount)} an $name ausgezahlt. Zweck: $purpose"
         } else {
             confirmationText(receives, parsedAmount ?: "0", unitName, purpose)
         }
         SignatureFullscreen(
-            title = if (signRole == "treasurer") "Kassierer" else name,
+            title = if (signRole == "treasurer") tr("Kassierer") else name,
             text = text,
             onConfirm = { s ->
                 val encoded = json.encodeToString(SignatureStrokes.serializer(), s)
@@ -428,7 +429,7 @@ fun ReceiptScreen(
                 }
                 withContext(Dispatchers.IO) { store.delete(draft.key) }
                 done = result
-                onChanged("Quittung ${result.number} abgeschlossen", null)
+                onChanged(tr("Quittung {number} abgeschlossen", "number" to result.number), null)
             } catch (e: ApiException) {
                 if (e.status == 0) {
                     waiting = true
@@ -450,7 +451,7 @@ fun ReceiptScreen(
             busy = true
             val bytes = client.cashReceiptPdf(id)
             if (bytes == null) {
-                error = "Die Quittung ließ sich nicht laden."
+                error = tr("Die Quittung ließ sich nicht laden.")
             } else {
                 val safe = number.replace(Regex("[^A-Za-z0-9-]"), "-")
                 val file = withContext(Dispatchers.IO) {
@@ -466,8 +467,8 @@ fun ReceiptScreen(
         Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        TextButton(onClick = onBack) { Text("‹ Zurück") }
-        Text("Quittung", style = MaterialTheme.typography.headlineSmall, modifier = Modifier.asHeading())
+        TextButton(onClick = onBack) { Text(tr("‹ Zurück")) }
+        Text(tr("Quittung"), style = MaterialTheme.typography.headlineSmall, modifier = Modifier.asHeading())
         if (busy) LinearProgressIndicator(Modifier.fillMaxWidth())
         error?.let { Text(it, color = MaterialTheme.colorScheme.error, modifier = Modifier.announce(urgent = true)) }
 
@@ -475,14 +476,14 @@ fun ReceiptScreen(
         if (result != null) {
             Card(Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("Quittung ${result.number} abgeschlossen", style = MaterialTheme.typography.titleMedium, modifier = Modifier.asHeading())
+                    Text(tr("Quittung {number} abgeschlossen", "number" to result.number), style = MaterialTheme.typography.titleMedium, modifier = Modifier.asHeading())
                     Text("${formatMoney(result.amount)} · ${result.counterpartyName}")
-                    Text("Gebucht in der ${result.accountName}. Das PDF hängt als Beleg an der Buchung.", style = MaterialTheme.typography.bodySmall)
+                    Text(tr("Gebucht in der {accountName}. Das PDF hängt als Beleg an der Buchung.", "accountName" to result.accountName), style = MaterialTheme.typography.bodySmall)
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Button(onClick = { pdf(result.id, true, result.number) }, enabled = !busy) { Text("Quittung teilen") }
-                        OutlinedButton(onClick = { pdf(result.id, false, result.number) }, enabled = !busy) { Text("Ansehen") }
+                        Button(onClick = { pdf(result.id, true, result.number) }, enabled = !busy) { Text(tr("Quittung teilen")) }
+                        OutlinedButton(onClick = { pdf(result.id, false, result.number) }, enabled = !busy) { Text(tr("Ansehen")) }
                     }
-                    TextButton(onClick = onBack) { Text("Fertig") }
+                    TextButton(onClick = onBack) { Text(tr("Fertig")) }
                 }
             }
             return@Column
@@ -490,25 +491,24 @@ fun ReceiptScreen(
         if (waiting) {
             Card(Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("Ohne Netz gespeichert", style = MaterialTheme.typography.titleMedium, modifier = Modifier.asHeading())
+                    Text(tr("Ohne Netz gespeichert"), style = MaterialTheme.typography.titleMedium, modifier = Modifier.asHeading())
                     Text(
-                        "Die Quittung liegt verschlüsselt auf diesem Telefon und bekommt ihre Belegnummer, sobald wieder Netz da ist " +
-                            "(unter Kasse, spätestens nach 30 Tagen). Das Datum ist der Zeitpunkt der Unterschrift.",
+                        tr("Die Quittung liegt verschlüsselt auf diesem Telefon und bekommt ihre Belegnummer, sobald wieder Netz da ist (unter Kasse, spätestens nach 30 Tagen). Das Datum ist der Zeitpunkt der Unterschrift."),
                         style = MaterialTheme.typography.bodySmall,
                     )
-                    TextButton(onClick = onBack) { Text("Fertig") }
+                    TextButton(onClick = onBack) { Text(tr("Fertig")) }
                 }
             }
             return@Column
         }
         if (c == null) {
-            if (offline) Text("Ohne Netz und ohne gespeicherte Auswahl. Bitte einmal mit Netz öffnen.")
+            if (offline) Text(tr("Ohne Netz und ohne gespeicherte Auswahl. Bitte einmal mit Netz öffnen."))
             else LinearProgressIndicator(Modifier.fillMaxWidth())
             return@Column
         }
-        if (offline) Text("Ohne Netz: Die Quittung wird gespeichert und später abgeschlossen.", style = MaterialTheme.typography.bodySmall)
+        if (offline) Text(tr("Ohne Netz: Die Quittung wird gespeichert und später abgeschlossen."), style = MaterialTheme.typography.bodySmall)
         if (accounts.isEmpty()) {
-            Text("Es gibt keine Barkasse. Bitte im Browser unter Finanzen › Einrichtung › Konten eine anlegen.")
+            Text(tr("Es gibt keine Barkasse. Bitte im Browser unter Finanzen › Einrichtung › Konten eine anlegen."))
             return@Column
         }
 
@@ -519,14 +519,14 @@ fun ReceiptScreen(
                     categoryId = null
                     signedChanged()
                 }
-            }, label = { Text("Verein erhält Geld") })
+            }, label = { Text(tr("Verein erhält Geld")) })
             FilterChip(selected = !receives, onClick = {
                 if (receives) {
                     receives = false
                     categoryId = null
                     signedChanged()
                 }
-            }, label = { Text("Verein zahlt aus") })
+            }, label = { Text(tr("Verein zahlt aus")) })
         }
         OutlinedTextField(
             value = name,
@@ -534,7 +534,7 @@ fun ReceiptScreen(
                 name = it
                 signedChanged()
             },
-            label = { Text(if (receives) "Zahler (Name)" else "Empfänger (Name)") },
+            label = { Text(if (receives) tr("Zahler (Name)") else tr("Empfänger (Name)")) },
             singleLine = true,
             modifier = Modifier.fillMaxWidth(),
         )
@@ -544,7 +544,7 @@ fun ReceiptScreen(
                 amount = it
                 signedChanged()
             },
-            label = { Text("Betrag in €") },
+            label = { Text(tr("Betrag in €")) },
             singleLine = true,
             isError = amount.isNotBlank() && parsedAmount == null,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
@@ -556,55 +556,55 @@ fun ReceiptScreen(
                 purpose = it
                 signedChanged()
             },
-            label = { Text("Zweck") },
+            label = { Text(tr("Zweck")) },
             singleLine = true,
             modifier = Modifier.fillMaxWidth(),
         )
         if (accounts.size > 1) {
-            ChoicePicker("Barkasse", accounts.map { it to it.name }, account, { it.name }) { accountId = it.id }
+            ChoicePicker(tr("Barkasse"), accounts.map { it to it.name }, account, { it.name }) { accountId = it.id }
         } else {
-            Text("in die ${accounts.first().name}", style = MaterialTheme.typography.bodySmall)
+            Text(tr("in die {x1}", "x1" to accounts.first().name), style = MaterialTheme.typography.bodySmall)
         }
-        ChoicePicker("Kategorie", categories.map { it to it.name }, category, { it.name }) { categoryId = it.id }
+        ChoicePicker(tr("Kategorie"), categories.map { it to it.name }, category, { it.name }) { categoryId = it.id }
         OutlinedTextField(
             value = email,
             onValueChange = { email = it },
-            label = { Text("E-Mail für das PDF (optional)") },
+            label = { Text(tr("E-Mail für das PDF (optional)")) },
             singleLine = true,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
             modifier = Modifier.fillMaxWidth(),
         )
 
-        Text(if (receives) "Betrag erhalten (Kassierer)" else "Betrag ausgezahlt (Kassierer)", style = MaterialTheme.typography.labelMedium)
+        Text(if (receives) tr("Betrag erhalten (Kassierer)") else tr("Betrag ausgezahlt (Kassierer)"), style = MaterialTheme.typography.labelMedium)
         SignatureBox(
             lines = treasurer?.lines() ?: if (useStored) stored?.lines() else null,
-            hint = "Antippen zum Unterschreiben",
+            hint = tr("Antippen zum Unterschreiben"),
             enabled = formReady && !busy,
         ) { signing = "treasurer" }
         if (treasurer == null && useStored && stored != null) {
-            Text("Deine hinterlegte Unterschrift. Antippen, um neu zu unterschreiben.", style = MaterialTheme.typography.bodySmall)
+            Text(tr("Deine hinterlegte Unterschrift. Antippen, um neu zu unterschreiben."), style = MaterialTheme.typography.bodySmall)
         }
 
-        Text(if (receives) "Betrag gezahlt: ${name.ifBlank { "Zahler" }}" else "Betrag erhalten: ${name.ifBlank { "Empfänger" }}", style = MaterialTheme.typography.labelMedium)
+        Text(if (receives) tr("Betrag gezahlt: {x1}", "x1" to name.ifBlank { tr("Zahler") }) else tr("Betrag erhalten: {x1}", "x1" to name.ifBlank { tr("Empfänger") }), style = MaterialTheme.typography.labelMedium)
         if (other == null && declined.isNotBlank()) {
-            Text("ohne Unterschrift: $declined", style = MaterialTheme.typography.bodyMedium)
-            TextButton(onClick = { declined = "" }) { Text("Doch unterschreiben lassen") }
+            Text(tr("ohne Unterschrift: {declined}", "declined" to declined), style = MaterialTheme.typography.bodyMedium)
+            TextButton(onClick = { declined = "" }) { Text(tr("Doch unterschreiben lassen")) }
         } else {
             SignatureBox(
                 lines = other?.lines(),
-                hint = "Antippen: im Vollbild unterschreiben lassen",
+                hint = tr("Antippen: im Vollbild unterschreiben lassen"),
                 enabled = formReady && !busy,
             ) { signing = "counterparty" }
             if (receives && other == null) {
                 TextButton(onClick = {
                     declineText = ""
                     askDecline = true
-                }) { Text("Zahler unterschreibt nicht") }
+                }) { Text(tr("Zahler unterschreibt nicht")) }
             }
         }
 
         LabeledCheckbox(
-            if (receives) "Ich bestätige, ${formatMoney(parsedAmount)} erhalten zu haben." else "Ich bestätige, ${formatMoney(parsedAmount)} ausgezahlt zu haben.",
+            if (receives) tr("Ich bestätige, {x1} erhalten zu haben.", "x1" to formatMoney(parsedAmount)) else tr("Ich bestätige, {x1} ausgezahlt zu haben.", "x1" to formatMoney(parsedAmount)),
             confirmed,
             { confirmed = it },
         )
@@ -615,9 +615,9 @@ fun ReceiptScreen(
             onClick = { finish() },
             enabled = !busy && formReady && treasurerReady && otherReady && confirmed,
             modifier = Modifier.fillMaxWidth(),
-        ) { Text("Quittung abschließen") }
+        ) { Text(tr("Quittung abschließen")) }
         Text(
-            "Ändern sich Betrag, Name, Zweck oder Richtung, müssen beide neu unterschreiben. Abgeschlossene Quittungen lassen sich nur im Browser stornieren.",
+            tr("Ändern sich Betrag, Name, Zweck oder Richtung, müssen beide neu unterschreiben. Abgeschlossene Quittungen lassen sich nur im Browser stornieren."),
             style = MaterialTheme.typography.bodySmall,
         )
     }
@@ -625,11 +625,11 @@ fun ReceiptScreen(
     if (askDecline) {
         AlertDialog(
             onDismissRequest = { askDecline = false },
-            title = { Text("Zahler unterschreibt nicht") },
+            title = { Text(tr("Zahler unterschreibt nicht")) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("Dann gilt nur deine Unterschrift als Kassierer, wie bei einer Papierquittung.")
-                    OutlinedTextField(value = declineText, onValueChange = { declineText = it }, label = { Text("Grund") })
+                    Text(tr("Dann gilt nur deine Unterschrift als Kassierer, wie bei einer Papierquittung."))
+                    OutlinedTextField(value = declineText, onValueChange = { declineText = it }, label = { Text(tr("Grund")) })
                 }
             },
             confirmButton = {
@@ -637,9 +637,9 @@ fun ReceiptScreen(
                     declined = declineText.trim()
                     otherJson = null
                     askDecline = false
-                }) { Text("Übernehmen") }
+                }) { Text(tr("Übernehmen")) }
             },
-            dismissButton = { TextButton(onClick = { askDecline = false }) { Text("Abbrechen") } },
+            dismissButton = { TextButton(onClick = { askDecline = false }) { Text(tr("Abbrechen")) } },
         )
     }
 }
@@ -658,7 +658,7 @@ private fun SignatureBox(lines: List<List<Pair<Float, Float>>>?, hint: String, e
         if (lines != null && lines.isNotEmpty()) {
             SignatureView(lines, Modifier.fillMaxSize())
         } else {
-            Text(if (enabled) hint else "Erst Name, Betrag, Zweck und Kategorie angeben", color = Color(0xFF666666))
+            Text(if (enabled) hint else tr("Erst Name, Betrag, Zweck und Kategorie angeben"), color = Color(0xFF666666))
         }
     }
 }
@@ -675,21 +675,21 @@ fun PendingReceipts(
     if (drafts.isEmpty()) return
     Card(Modifier.fillMaxWidth().padding(16.dp)) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            Text("Quittungen ohne Belegnummer (${drafts.size})", style = MaterialTheme.typography.titleSmall, modifier = Modifier.asHeading())
-            Text("Unterschrieben, liegen verschlüsselt auf diesem Telefon, bis sie abgeschlossen sind.", style = MaterialTheme.typography.bodySmall)
+            Text(tr("Quittungen ohne Belegnummer ({size})", "size" to drafts.size), style = MaterialTheme.typography.titleSmall, modifier = Modifier.asHeading())
+            Text(tr("Unterschrieben, liegen verschlüsselt auf diesem Telefon, bis sie abgeschlossen sind."), style = MaterialTheme.typography.bodySmall)
             drafts.forEach { d ->
                 Text("${formatPlainDate(d.counterpartyAt.ifBlank { d.treasurerAt })} · ${formatMoney(d.amount)} · ${d.counterpartyName}")
                 d.error?.let {
                     Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall, modifier = Modifier.announce(urgent = true))
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         // Schon auf dem Server angelegt: dort ist die Zuordnung festgelegt
-                        if (d.serverId == null) OutlinedButton(onClick = { onFix(d) }) { Text("Korrigieren") }
-                        TextButton(onClick = { onDiscard(d) }) { Text("Verwerfen …") }
+                        if (d.serverId == null) OutlinedButton(onClick = { onFix(d) }) { Text(tr("Korrigieren")) }
+                        TextButton(onClick = { onDiscard(d) }) { Text(tr("Verwerfen …")) }
                     }
                 }
             }
             if (sending) LinearProgressIndicator(Modifier.fillMaxWidth())
-            OutlinedButton(onClick = onSend, enabled = !sending) { Text("Jetzt senden") }
+            OutlinedButton(onClick = onSend, enabled = !sending) { Text(tr("Jetzt senden")) }
         }
     }
 }

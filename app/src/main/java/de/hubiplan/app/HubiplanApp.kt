@@ -13,6 +13,8 @@ class HubiplanApp : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        // Sprache vor allem anderen, damit auch Kanäle und Hinweise passen
+        Texte.init(this)
         Notifications.createChannels(this)
         // Härtung H7: alle Anfragen erneuern den Geräteschlüssel bei Bedarf über die Konten
         val keys = de.hubiplan.app.data.KeyMaintenance(this, accounts)

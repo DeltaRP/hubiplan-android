@@ -6,6 +6,7 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import java.net.URLEncoder
+import de.hubiplan.app.tr
 
 /** Ergebnis einer Änderung: neuer Stand und Paket für „Rückgängig“. */
 data class Changed<T>(val value: T, val changeSet: String?, val label: String?)
@@ -283,7 +284,7 @@ class AdminClient(
         val other = when {
             draft.declined.isNotBlank() -> obj("declined" to draft.declined)
             draft.counterparty != null -> signatureBody(draft.counterparty, draft.counterpartyAt)
-            else -> throw ApiException(400, "Die Unterschrift der Gegenseite fehlt.")
+            else -> throw ApiException(400, tr("Die Unterschrift der Gegenseite fehlt."))
         }
         use().admin("PUT", "${base}finance/cash-receipts/$id/signatures/counterparty/", other.toString())
         val done = use().admin(

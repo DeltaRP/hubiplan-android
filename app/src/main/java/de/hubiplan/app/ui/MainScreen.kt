@@ -45,9 +45,10 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.unit.dp
+import de.hubiplan.app.tr
 
 private enum class Tab(val label: String) {
-    TERMINE("Termine"), MITTEILUNGEN("Mitteilungen"), PROFIL("Profil"), VERWALTUNG("Verwaltung"), KONTO("Konto"),
+    TERMINE(tr("Termine")), MITTEILUNGEN(tr("Mitteilungen")), PROFIL(tr("Profil")), VERWALTUNG(tr("Verwaltung")), KONTO(tr("Konto")),
 }
 
 /** Ab dieser Breite stehen Liste und Detail nebeneinander (Tablet, Querformat). */
@@ -91,7 +92,7 @@ fun MainScreen(main: Screen.Main, vm: AppViewModel) {
             TopAppBar(
                 // In der Verwaltung nicht den persönlichen Zugang als Kopf zeigen; welche Einheit
                 // verwaltet wird, steht darunter (UX-Audit 31.10. A04)
-                title = { if (tab == Tab.VERWALTUNG) Text("Verwaltung") else AccessPicker(main, vm) },
+                title = { if (tab == Tab.VERWALTUNG) Text(tr("Verwaltung")) else AccessPicker(main, vm) },
                 // Wappen der gewählten Einheit vor dem Namen (Schmuck; der Name steht daneben)
                 navigationIcon = {
                     val logo by vm.logo.collectAsStateWithLifecycle()
@@ -108,11 +109,11 @@ fun MainScreen(main: Screen.Main, vm: AppViewModel) {
             )
             if (main.offline) {
                 Text(
-                    "Keine Verbindung zu HUBIplan. Bitte später erneut versuchen.",
+                    tr("Keine Verbindung zu HUBIplan. Bitte später erneut versuchen."),
                     color = MaterialTheme.colorScheme.error,
                     modifier = Modifier.announce().padding(16.dp),
                 )
-                TextButton(onClick = vm::reload, modifier = Modifier.padding(horizontal = 8.dp)) { Text("Erneut laden") }
+                TextButton(onClick = vm::reload, modifier = Modifier.padding(horizontal = 8.dp)) { Text(tr("Erneut laden")) }
             }
             val access = main.access
             val offer by vm.shortcutOffer.collectAsStateWithLifecycle()
@@ -123,7 +124,7 @@ fun MainScreen(main: Screen.Main, vm: AppViewModel) {
                     tab == Tab.VERWALTUNG -> AdminPane(main, vm)
                     main.me == null && !main.offline -> Loading()
                     access == null && main.me != null -> Message(
-                        "Für dieses Konto ist kein Mitgliederbereich freigeschaltet. Bitte wende dich an den Vorstand.",
+                        tr("Für dieses Konto ist kein Mitgliederbereich freigeschaltet. Bitte wende dich an den Vorstand."),
                     )
                     access != null && tab == Tab.TERMINE -> EventsPane(access, vm)
                     access != null && tab == Tab.MITTEILUNGEN -> CircularsPane(access, vm)
@@ -144,14 +145,14 @@ fun MainScreen(main: Screen.Main, vm: AppViewModel) {
 private fun ShortcutOffer(name: String, vm: AppViewModel) {
     Card(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text("„$name“ auf den Startbildschirm legen?", style = MaterialTheme.typography.titleSmall)
+            Text(tr("„{name}“ auf den Startbildschirm legen?", "name" to name), style = MaterialTheme.typography.titleSmall)
             Text(
-                "Eine Verknüpfung mit Wappen und Namen öffnet die App direkt hier. Im App-Menü heißt die App weiter HUBIplan.",
+                tr("Eine Verknüpfung mit Wappen und Namen öffnet die App direkt hier. Im App-Menü heißt die App weiter HUBIplan."),
                 style = MaterialTheme.typography.bodySmall,
             )
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 TextButton(onClick = { vm.pinShortcut() }) { Text("Ja, ablegen") }
-                TextButton(onClick = vm::dismissShortcutOffer) { Text("Nein, danke") }
+                TextButton(onClick = vm::dismissShortcutOffer) { Text(tr("Nein, danke")) }
             }
         }
     }
@@ -167,8 +168,8 @@ private fun AccessPicker(main: Screen.Main, vm: AppViewModel) {
         return
     }
     Box {
-        TextButton(onClick = { open = true }, modifier = Modifier.dropdown("Einheit", current?.title ?: "keine gewählt", open)) {
-            Text((current?.title ?: "Einheit wählen") + " ▾", color = LocalBrand.current.onBrand)
+        TextButton(onClick = { open = true }, modifier = Modifier.dropdown(tr("Einheit"), current?.title ?: tr("keine gewählt"), open)) {
+            Text((current?.title ?: tr("Einheit wählen")) + " ▾", color = LocalBrand.current.onBrand)
         }
         DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
             accesses.forEach { a ->
@@ -225,7 +226,7 @@ fun Message(text: String) {
 fun Loading() {
     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         androidx.compose.material3.CircularProgressIndicator(
-            Modifier.semantics { contentDescription = "Lädt" }.announce(),
+            Modifier.semantics { contentDescription = tr("Lädt") }.announce(),
         )
     }
 }
@@ -242,7 +243,7 @@ private fun OfflineCardPane(main: Screen.Main) {
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         if (accessId == null) {
-            Text("Ohne Netz ist noch kein Ausweis gespeichert.")
+            Text(tr("Ohne Netz ist noch kein Ausweis gespeichert."))
         } else {
             MemberCardSection(store, accessId, null)
         }
@@ -257,10 +258,9 @@ private fun OfflinePane(main: Screen.Main, events: Boolean) {
     ) {
         Text(
             if (events) {
-                "Ohne Verbindung lassen sich die Termine nicht laden. Ist der Abgleich mit dem Gerätekalender " +
-                    "eingeschaltet, stehen sie dort."
+                tr("Ohne Verbindung lassen sich die Termine nicht laden. Ist der Abgleich mit dem Gerätekalender eingeschaltet, stehen sie dort.")
             } else {
-                "Ohne Verbindung lassen sich die Mitteilungen nicht laden. Sie erscheinen, sobald wieder Verbindung besteht."
+                tr("Ohne Verbindung lassen sich die Mitteilungen nicht laden. Sie erscheinen, sobald wieder Verbindung besteht.")
             },
         )
         PendingLocalCard(main)
@@ -292,8 +292,7 @@ fun PendingLocalCard(main: Screen.Main) {
                 modifier = Modifier.asHeading(),
             )
             Text(
-                "Sie liegen verschlüsselt auf diesem Telefon und werden gesendet, sobald Verbindung besteht und " +
-                    "du die Verwaltung öffnest. Einzelheiten stehen dort.",
+                tr("Sie liegen verschlüsselt auf diesem Telefon und werden gesendet, sobald Verbindung besteht und du die Verwaltung öffnest. Einzelheiten stehen dort."),
                 style = MaterialTheme.typography.bodySmall,
             )
         }
@@ -302,4 +301,4 @@ fun PendingLocalCard(main: Screen.Main) {
 
 /** „1 Kassenvorgang wartet auf Versand“ / „3 Kassenvorgänge warten auf Versand“. */
 fun pendingCountText(count: Int): String =
-    if (count == 1) "1 Kassenvorgang wartet auf Versand" else "$count Kassenvorgänge warten auf Versand"
+    if (count == 1) tr("1 Kassenvorgang wartet auf Versand") else tr("{count} Kassenvorgänge warten auf Versand", "count" to count)

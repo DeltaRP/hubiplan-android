@@ -108,6 +108,13 @@ fastlane/metadata/             Texte und Bilder für F-Droid und Play
 docs/                          Lizenzen, Veröffentlichen
 ```
 
+**Sprache:** Deutsch oder Englisch. Wie im Browser ist der deutsche Text der Schlüssel:
+`tr("Erneut laden")`, Platzhalter `tr("Mitglied seit {jahr}", "jahr" to j)`, Mehrzahl mit
+`trn(…)` (`Texte.kt`). Die englischen Texte stehen in `app/src/main/assets/texte/en.json`;
+`TexteTest` schlägt fehl, solange einer fehlt. Es gilt die in den Android-Einstellungen gewählte
+App-Sprache (ab Android 13), sonst die Sprache des zuerst verbundenen Kontos (änderbar unter
+Konto › Sprache, wenn der Server Englisch freigeschaltet hat), sonst Deutsch.
+
 Die Schnittstelle zu HUBIplan (`/api/app/v1/`) beschreibt
 [docs/app.md](https://github.com/hubiplan/hubiplan/blob/main/docs/app.md) in hubiplan.
 

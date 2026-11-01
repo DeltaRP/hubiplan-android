@@ -18,6 +18,7 @@ import de.hubiplan.app.data.Api
 import de.hubiplan.app.data.ApiException
 import de.hubiplan.app.data.LocalAccountData
 import kotlinx.coroutines.flow.first
+import de.hubiplan.app.tr
 
 /** Knopf „Zusage“/„Absage“ in der Benachrichtigung: Rückmeldung senden, auch ohne Netz (später). */
 class RsvpActionReceiver : BroadcastReceiver() {
@@ -99,7 +100,7 @@ class RsvpWorker(context: Context, params: WorkerParameters) : CoroutineWorker(c
             Notifications.showText(
                 applicationContext,
                 notification,
-                if (status == "yes") "Zusage gesendet" else "Absage gesendet",
+                if (status == "yes") tr("Zusage gesendet") else tr("Absage gesendet"),
                 detail.title,
             )
             SyncWorker.now(applicationContext)
@@ -107,7 +108,7 @@ class RsvpWorker(context: Context, params: WorkerParameters) : CoroutineWorker(c
         } catch (e: ApiException) {
             if (e.status == 0 || e.status >= 500) return Result.retry()
             // Frist vorbei, ausgebucht, nicht eingeladen: Grund zeigen
-            Notifications.showText(applicationContext, notification, "Rückmeldung nicht möglich", e.message ?: "")
+            Notifications.showText(applicationContext, notification, tr("Rückmeldung nicht möglich"), e.message ?: "")
             Result.failure()
         }
     }
