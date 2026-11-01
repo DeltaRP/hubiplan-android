@@ -1,10 +1,10 @@
 # Sicherheit
 
 Die HUBIplan-App greift auf Mitgliederdaten, Bankverbindungen und die Kasse eines Vereins
-zu und speichert Teile davon auf dem Telefon. Hinweise auf Sicherheitslücken nehmen wir deshalb sehr ernst und sind für jede
-Meldung dankbar.
+zu und speichert Teile davon auf dem Telefon. Hinweise auf Sicherheitslücken nehmen wir
+deshalb sehr ernst und sind für jede Meldung dankbar.
 
-*Reports in English are welcome.*
+*Reports in English are welcome; see the [English summary](#english-summary) at the end.*
 
 ## Lücke melden
 
@@ -42,7 +42,11 @@ Gemeint ist der Code in diesem Repository, beide Varianten. Besonders interessan
 - unverschlüsselt gespeicherte Daten (Mitgliedsausweis, Kassenentwürfe, Belegfotos),
 - Umgehung der Sperre des Reiters „Verwaltung“ (Fingerabdruck, PIN, Bildschirmfotos),
 - Schwächen bei Verbinden per QR-Code, Push-Entschlüsselung oder Zertifikatsprüfung,
-- Verbindungen zu anderen Diensten als der HUBIplan-Instanz (außer Push in `play`).
+- Verbindungen zu anderen Diensten als der HUBIplan-Instanz (außer Push in `play`),
+- Daten eines Kontos, die in einem anderen verbundenen Konto oder nach dem Abmelden noch
+  lesbar sind (z. B. zwischengespeicherte PDFs, Belege, Kalendereinträge),
+- Verknüpfungen auf dem Startbildschirm oder Links, die ein fremdes Konto öffnen oder
+  Aktionen ohne Freischaltung auslösen.
 
 Liegt der Fehler in der Schnittstelle von HUBIplan, bitte
 [dort melden](https://github.com/hubiplan/hubiplan/security/advisories/new).
@@ -63,3 +67,15 @@ entsperrtes Telefon mit Root-Rechten voraussetzen).
 
 Wer sich an diese Regeln hält und in gutem Glauben handelt, hat von uns keine rechtlichen
 Schritte zu erwarten.
+
+## English summary
+
+Please do **not** open a public issue. Report vulnerabilities privately via
+[GitHub private vulnerability reporting](https://github.com/hubiplan/hubiplan-android/security/advisories/new).
+Bugs in the HUBIplan server API belong to
+[HUBIplan](https://github.com/hubiplan/hubiplan/security/advisories/new). We usually
+acknowledge reports within 7 days and ask you to keep details private until a fix is
+available, for at most 90 days. Fixes go into the latest released version and `main`; there
+are no release branches. Test only against your own HUBIplan installation with made-up data,
+never against other people's instances or real member data. Good-faith research that follows
+these rules will not face legal action from us.
