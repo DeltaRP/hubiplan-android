@@ -9,8 +9,9 @@ nur mit der HUBIplan-Instanz des eigenen Vereins, nie mit einem fremden Dienst. 
 
 > **English:** The Android companion app for [HUBIplan](https://github.com/hubiplan/hubiplan),
 > free membership management for clubs. It talks only to the member's own HUBIplan instance;
-> the `foss` flavour contains no Google services. The user interface and documentation are
-> in German; issues and security reports in English are welcome.
+> the `foss` flavour contains no Google services. The app is available in German and
+> English; the developer documentation is in German. Issues and security reports in English
+> are welcome.
 
 Paketname `de.hubiplan.app`, ab Android 9, für Telefon und Tablet.
 
@@ -42,7 +43,9 @@ Paketname `de.hubiplan.app`, ab Android 9, für Telefon und Tablet.
   (wenn der Verein das Modul Wettbewerbe nutzt)
 - Mitgliederfoto mit der Kamera aufnehmen oder aus der Galerie wählen, mit Einwilligung;
   der Verein gibt es frei, Foto und Einwilligung lassen sich in der App widerrufen
-- Farben und Wappen des Vereins aus HUBIplan
+- Farben und Wappen des Vereins aus HUBIplan; Verknüpfung mit dem Wappen des Vereins auf
+  dem Startbildschirm
+- Deutsch oder Englisch (App-Sprache von Android oder Auswahl unter Konto › Sprache)
 - mehrere Konten bei verschiedenen HUBIplan-Instanzen, jedes mit eigenem Geräteschlüssel,
   eigenen Kalendern und eigenem Push
 
@@ -102,7 +105,9 @@ app/src/main/java/de/hubiplan/app/
   push/       UnifiedPush und Web-Push-Entschlüsselung
   sync/       Abruf im Hintergrund
   photo/      Kamera und Fotos
+  shortcut/   Verknüpfung mit Vereinswappen auf dem Startbildschirm
 app/src/foss/, app/src/play/   Unterschiede der Varianten
+app/src/main/assets/texte/     englische Texte (en.json)
 app/src/test/                  Unit-Tests
 fastlane/metadata/             Texte und Bilder für F-Droid und Play
 docs/                          Lizenzen, Veröffentlichen
