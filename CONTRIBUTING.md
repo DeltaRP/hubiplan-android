@@ -5,7 +5,7 @@ willkommen. Contributions in English are welcome as well.
 
 ## Bevor du loslegst
 
-- **Fehler und Ideen** als [Issue](https://github.com/DeltaRP/hubiplan-android/issues) melden. Für
+- **Fehler und Ideen** als [Issue](https://github.com/hubiplan/hubiplan-android/issues) melden. Für
   größere Änderungen bitte zuerst ein Issue eröffnen und den Weg absprechen, damit keine
   Arbeit umsonst ist.
 - **Sicherheitslücken** nie öffentlich, sondern wie in [SECURITY.md](SECURITY.md) beschrieben.
@@ -29,7 +29,7 @@ Hinweise zum Stil:
   (`app/src/play/`). Freie Bibliotheken unter Apache-2.0 (z. B. AndroidX) sind in Ordnung.
 - Die App spricht nur mit der HUBIplan-Instanz des Mitglieds (`/api/app/v1/`,
   `/api/portal/…`), nie mit Analyse-, Werbe- oder anderen Fremddiensten. Neue Endpunkte
-  entstehen zuerst in [hubiplan](https://github.com/DeltaRP/hubiplan).
+  entstehen zuerst in [hubiplan](https://github.com/hubiplan/hubiplan).
 - Neue Funktionen allgemein halten: Die App soll für Vereine jeder Art passen.
 - Neue Abhängigkeiten müssen mit der AGPL-3.0 verträglich sein (z. B. MIT, BSD, Apache-2.0,
   LGPL, MPL-2.0). Nicht möglich: GPL-2.0-only, SSPL, „nur nicht-kommerziell“, proprietär.

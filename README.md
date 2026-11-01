@@ -1,13 +1,13 @@
 # HUBIplan-App für Android
 
-**Die Android-App zu [HUBIplan](https://github.com/DeltaRP/hubiplan), der freien Vereinsverwaltung.**
+**Die Android-App zu [HUBIplan](https://github.com/hubiplan/hubiplan), der freien Vereinsverwaltung.**
 
 Die App bringt Termine, Mitteilungen, den Mitgliedsausweis und die wichtigsten
 Verwaltungsaufgaben aufs Telefon. Sie ergänzt den Mitgliederbereich im Browser und spricht
 nur mit der HUBIplan-Instanz des eigenen Vereins, nie mit einem fremden Dienst. Die Variante
 `foss` kommt ganz ohne Google-Dienste aus; Push geht dort über UnifiedPush.
 
-> **English:** The Android companion app for [HUBIplan](https://github.com/DeltaRP/hubiplan),
+> **English:** The Android companion app for [HUBIplan](https://github.com/hubiplan/hubiplan),
 > free membership management for clubs. It talks only to the member's own HUBIplan instance;
 > the `foss` flavour contains no Google services. The user interface and documentation are
 > in German; issues and security reports in English are welcome.
@@ -107,7 +107,7 @@ docs/                          Lizenzen, Veröffentlichen
 ```
 
 Die Schnittstelle zu HUBIplan (`/api/app/v1/`) beschreibt
-[docs/app.md](https://github.com/DeltaRP/hubiplan/blob/main/docs/app.md) in hubiplan.
+[docs/app.md](https://github.com/hubiplan/hubiplan/blob/main/docs/app.md) in hubiplan.
 
 ## Bauen und testen
 
@@ -122,7 +122,7 @@ scripts/test.sh                                  # Unit-Tests, Lint, Debug-APKs,
 
 `scripts/test.sh` läuft unter Linux, WSL und Git Bash unter Windows. Damit sich mehrere
 Testläufe auf einem Rechner nicht ausbremsen, holt es sich einen Testplatz mit `testplatz`
-(aus [hubiplan/scripts/testplatz.sh](https://github.com/DeltaRP/hubiplan/blob/main/scripts/testplatz.sh),
+(aus [hubiplan/scripts/testplatz.sh](https://github.com/hubiplan/hubiplan/blob/main/scripts/testplatz.sh),
 Installation steht im Kopf der Datei).
 
 Nur beim Herausgeber, nie im Repository:
@@ -147,7 +147,7 @@ der Variante `foss`.
 ## Sicherheit
 
 Sicherheitslücken bitte **nicht** als öffentliches Issue melden, sondern vertraulich über
-[GitHub](https://github.com/DeltaRP/hubiplan-android/security/advisories/new). Einzelheiten:
+[GitHub](https://github.com/hubiplan/hubiplan-android/security/advisories/new). Einzelheiten:
 [SECURITY.md](SECURITY.md).
 
 ## Lizenz

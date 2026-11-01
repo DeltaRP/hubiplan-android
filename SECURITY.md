@@ -9,7 +9,7 @@ Meldung dankbar.
 ## Lücke melden
 
 Bitte **kein öffentliches Issue**, sondern vertraulich über GitHub:
-[Report a vulnerability](https://github.com/DeltaRP/hubiplan-android/security/advisories/new)
+[Report a vulnerability](https://github.com/hubiplan/hubiplan-android/security/advisories/new)
 (im Repository unter **Security › Report a vulnerability**).
 
 Hilfreich sind:
@@ -45,7 +45,7 @@ Gemeint ist der Code in diesem Repository, beide Varianten. Besonders interessan
 - Verbindungen zu anderen Diensten als der HUBIplan-Instanz (außer Push in `play`).
 
 Liegt der Fehler in der Schnittstelle von HUBIplan, bitte
-[dort melden](https://github.com/DeltaRP/hubiplan/security/advisories/new).
+[dort melden](https://github.com/hubiplan/hubiplan/security/advisories/new).
 
 Nicht gemeint sind Lücken in Fremdsoftware (bitte dort melden), reine Last- oder
 Überlastungsangriffe, Social Engineering sowie Befunde ohne Auswirkung (z. B. Befunde, die ein
@@ -55,7 +55,7 @@ entsperrtes Telefon mit Root-Rechten voraussetzen).
 
 - Prüfe **nur gegen eine eigene HUBIplan-Installation** mit erfundenen Daten, z. B. mit
   `docker compose up` und `seed_testdata` (siehe
-  [hubiplan](https://github.com/DeltaRP/hubiplan#ausprobieren-mit-docker)).
+  [hubiplan](https://github.com/hubiplan/hubiplan#ausprobieren-mit-docker)).
 - Keine Angriffe auf fremde HUBIplan-Instanzen oder echte Vereinsdaten, keine
   Überlastungsangriffe.
 - Stößt du doch auf echte personenbezogene Daten, greife nicht weiter darauf zu, speichere

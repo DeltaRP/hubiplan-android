@@ -30,7 +30,7 @@ import androidx.compose.ui.window.DialogProperties
 import de.hubiplan.app.BuildConfig
 import de.hubiplan.app.data.Licenses
 
-const val SOURCE_URL = "https://github.com/DeltaRP/hubiplan-android"
+const val SOURCE_URL = "https://github.com/hubiplan/hubiplan-android"
 
 private fun Context.asset(path: String): String? =
     runCatching { assets.open(path).bufferedReader().use { it.readText() } }.getOrNull()
